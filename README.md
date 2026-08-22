@@ -13,7 +13,7 @@ A lightweight, zero-boilerplate C unit testing library.
 Clone the repository and install CTest globally using `make`:
 
 ```bash
-git clone [https://github.com/meluchoMZ/ctest.git](https://github.com/meluchoMZ/ctest.git)
+git clone https://github.com/meluchoMZ/ctest.git
 cd ctest
 make
 sudo make install
@@ -21,10 +21,10 @@ sudo make install
 
 ## Quick start guide
 
-Include `<ctest_apil.h>` in your test source files, write your test cases, and compile. No explicit `main()` wrapper or test setup code is required.
+Include `<ctest_api.h>` in your test source files, write your test cases, and compile. No explicit `main()` wrapper or test setup code is required.
 
 ```C
-#include <ctest_apil.h>
+#include <ctest_api.h>
 
 TEST(MathSuite, AdditionTest, "Verifies basic addition operations") {
     int result = 2 + 2;
