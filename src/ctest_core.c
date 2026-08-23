@@ -5,6 +5,8 @@
 
 #include "ctest_core.h"
 
+#include <asm/termbits.h>
+#include <asm/termios.h>
 #include <errno.h>
 #include <signal.h>
 #include <stdbool.h>
@@ -12,6 +14,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/ioctl.h>
 #include <sys/wait.h>
 #include <unistd.h>
 
@@ -228,17 +231,81 @@ TestResult executeTest(TestFunction testFunction)
 }
 
 /**
+ * Prints in real time with progress bars test execution and status
+ */
+void testPrinter(void)
+{
+}
+
+/**
+ * Prints CTest logo, version and author copyright in ascii art
+ */
+void printCTestLogo(void)
+{
+	const char *logo =
+		"  ____ _____         _   \n"
+		" / ___|_   _|__  ___| |_ \n"
+		"| |     | |/ _ \\/ __| __|\n"
+		"| |___  | |  __/\\__ \\ |_ \n"
+		" \\____| |_|\\___||___/\\__|\n";
+	printf("%s\n", logo);
+	printf("CTest Version: %s\n", CTEST_VERSION);
+	printf("%s\n\n\n", CTEST_COPYRIGHT);
+}
+
+/**
+ * Obtains number of columns from the terminal CTest is being run
+ */
+int getTerminalWidth()
+{
+	struct winsize terminalWindowSize;
+	if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &terminalWindowSize) != 0) {
+		fprintf(stderr, "[CTEST] | Error | could not get terminal window size: %s\n", strerror(errno));
+		return -1;
+	}
+	return terminalWindowSize.ws_col;
+}
+
+/**
+ * Prints a test name followed by dots and end with [SUCESS] or [FAILURE]
+ */
+void printTestResult(const char *testCaseName, int terminalWidth, bool success)
+{
+	size_t remainingColumns = terminalWidth - strlen(testCaseName) - TEST_RESULT_MESSAGE_SIZE;
+	printf("%s", testCaseName);
+	if (remainingColumns > 0) {
+		for (size_t i = 0; i < remainingColumns; ++i) {
+			putchar('.');
+		}
+	}
+	printf("%s\n", success ?
+			GREEN SUCCESS_MESSAGE RESET :
+			RED FAILURE_MESSAGE RESET);
+}
+
+/**
+ * Executes all the tests registered in a TestStatus element
+ */
+void executeTests(TestStatus *testStatus)
+{
+	int terminalWidth = getTerminalWidth();
+	printCTestLogo();
+	printf("Found '%ld' test suites\n", testStatus->suiteCount);
+	for (long i = 0; i < testStatus->suiteCount; ++i) {
+		printf("Executing test suite %s. Tests found: %ld\n", testStatus->testSuites[i]->name,
+				testStatus->testSuites[i]->testCount);
+		for (long j = 0; j < testStatus->testSuites[i]->testCount; ++j) {
+			TestResult result = executeTest(testStatus->testSuites[i]->testCases[j]->execute);
+			printTestResult(testStatus->testSuites[i]->testCases[j]->name, terminalWidth, result == SUCCESS);
+		}
+	}
+}
+
+/**
  * Framework entrypoint.
  */
 int __attribute__((weak)) main(void)
 {
-	printf("Test suites: %ld\n", testStatus->suiteCount);
-	for (long i = 0; i < testStatus->suiteCount; ++i) {
-		printf("Executing test suite '%s': %ld tests\n", testStatus->testSuites[i]->name, testStatus->testSuites[i]->testCount);
-		for (long j = 0; j < testStatus->testSuites[i]->testCount; ++j) {
-			printf("\tExecuting test '%s'\n", testStatus->testSuites[i]->testCases[j]->name);
-			executeTest(testStatus->testSuites[i]->testCases[j]->execute);
-		}
-	}
+	executeTests(testStatus);
 	return EXIT_SUCCESS;
 }

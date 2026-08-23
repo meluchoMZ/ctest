@@ -17,6 +17,17 @@
  * This header file defines the api for automated testing of the emulator
  */
 
+
+#define CTEST_VERSION "0.1.0"
+#define CTEST_COPYRIGHT "Copyright (c) 2026 Miguel Blanco Godón"
+
+#define RED "\x1b[31m"
+#define GREEN "\x1b[32m"
+#define RESET "\x1b[0m"
+
+#define SUCCESS_MESSAGE "[SUCCESS]"
+#define FAILURE_MESSAGE "[FAILURE]"
+#define TEST_RESULT_MESSAGE_SIZE 9
 /**
  * Function pointer to the executable test function for each test
  */
