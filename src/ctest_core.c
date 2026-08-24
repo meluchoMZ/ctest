@@ -15,6 +15,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/ioctl.h>
+#include <sys/time.h>
 #include <sys/wait.h>
 #include <unistd.h>
 
@@ -65,7 +66,6 @@ TestCase * createTestCase(const char *testName, const char *testSuite, const cha
 	testCase->description = description;
 	testCase->execute = testFunction;
 	testCase->executed = false;
-	testCase->successful = false;
 	return testCase;
 }
 
@@ -294,16 +294,37 @@ void printTestResult(const char *testCaseName, int terminalWidth, bool success)
  */
 void executeTests(TestStatus *testStatus)
 {
+	struct timeval tInit, tFinish;
+	double elapsedTime = 0;
+	long totalTests = 0;
+	long successfulTests = 0;
+	long failedTests = 0;
 	int terminalWidth = getTerminalWidth();
 	printCTestLogo();
+	gettimeofday(&tInit, NULL);
 	printf("Found '%ld' test suites\n", testStatus->suiteCount);
 	for (long i = 0; i < testStatus->suiteCount; ++i) {
 		printf("Executing test suite %s. Tests found: %ld\n", testStatus->testSuites[i]->name,
 				testStatus->testSuites[i]->testCount);
 		for (long j = 0; j < testStatus->testSuites[i]->testCount; ++j) {
 			TestResult result = executeTest(testStatus->testSuites[i]->testCases[j]->execute);
+			testStatus->testSuites[i]->testCases[j]->executed = true;
+			testStatus->testSuites[i]->testCases[j]->testResult = result;
+			totalTests++;
+			result == SUCCESS ? successfulTests++ : failedTests++;
 			printTestResult(testStatus->testSuites[i]->testCases[j]->name, terminalWidth, result == SUCCESS);
 		}
+	}
+	gettimeofday(&tFinish, NULL);
+	elapsedTime = (tFinish.tv_sec - tInit.tv_sec) + ((tFinish.tv_usec - tInit.tv_usec) / (double) 1000000);
+	printf("\nSUMMARY REPORT\n");
+	printf("\tExecuted %ld tests from %ld test suites in %f seconds:\n", totalTests, testStatus->suiteCount, 
+			elapsedTime);
+	printf("\tSuccessful tests: " GREEN "%ld" RESET ", Failed tests:" RED "%ld" RESET "\n", successfulTests, failedTests);
+	if (failedTests == 0) {
+		printf("\t" GREEN "BUILD SUCCESS" RESET "\n");
+	} else {
+		printf("\t" RED "BUILD FAILURE" RESET "\n");
 	}
 }
 

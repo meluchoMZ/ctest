@@ -55,7 +55,7 @@ typedef struct TestCase
 	// function pointer to the test function the test executes
 	TestFunction execute;
 	bool executed;
-	bool successful;
+	TestResult testResult;
 } TestCase;
 
 /**
