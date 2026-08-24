@@ -103,7 +103,7 @@ TestSuite * createTestSuite(const char *name);
  * Free all the allocated memory in a TestSuite element.
  * Frees all the TestCase elements inside the TestSuite.
  */ 
-void freeTestSuite(TestSuite *testSuite);
+void freeTestSuite(TestSuite **testSuitePtr);
 
 /**
  * Adds a TestCase to a TestSuite 
@@ -132,7 +132,7 @@ static inline TestSuite * __attribute__((unused)) findSuite(TestStatus *testStat
 {
 	if (testStatus == NULL) {
 		fprintf(stderr, "[CTEST] | Error | cannot find suite '%s': testStatus is NULL\n", suiteName);
-		return false;
+		return NULL;
 	}
 	for (long i = 0; i < testStatus->suiteCount; ++i) {
 		if (strcmp(testStatus->testSuites[i]->name, suiteName) == 0) {

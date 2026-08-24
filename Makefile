@@ -4,7 +4,7 @@ TARGET = libctest.so
 TEST_TARGET = ctest_test
 
 SRC = src/ctest_core.c src/ctest_api.c
-TEST_SRC = test/assertions/assertions_tests.c
+TEST_SRC = test/assertions/assertions_tests.c test/core/test_suite.c
 INCLUDES = include/ctest_api.h src/ctest_core.h
 
 OBJECTS = ctest_core.o ctest_api.o

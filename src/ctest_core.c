@@ -44,7 +44,7 @@ static void __attribute__((destructor)) finalizeTests(void)
 	if (testStatus != NULL) {
 		for (long i = testStatus->suiteCount - 1; i >= 0; --i) {
 			// freeTestSuite do already frees its test cases
-			freeTestSuite(testStatus->testSuites[i]);
+			freeTestSuite(&testStatus->testSuites[i]);
 		}
 		free(testStatus->testSuites);
 		testStatus->testSuites = NULL;
@@ -185,17 +185,23 @@ bool addTestSuite(TestStatus *testStatus, TestSuite *testSuite)
 	return true;
 }
 
-void freeTestSuite(TestSuite *testSuite)
+void freeTestSuite(TestSuite **testSuitePtr)
 {
-	if (testSuite != NULL) {
-		for (int i = 0; i < testSuite->testCount; ++i) {
-			freeTestCase(testSuite->testCases[i]);
-			testSuite->testCases[i] = NULL;
+	if (testSuitePtr != NULL) {
+		TestSuite *testSuite = *testSuitePtr;
+		if (testSuite != NULL) {
+			if (testSuite->testCases != NULL) {
+				for (int i = 0; i < testSuite->testCount; ++i) {
+					freeTestCase(testSuite->testCases[i]);
+					testSuite->testCases[i] = NULL;
+				}
+				free(testSuite->testCases);
+				testSuite->testCases = NULL;
+			}
+			free(testSuite);
+			testSuite = NULL;
+			*testSuitePtr = NULL;
 		}
-		free(testSuite->testCases);
-		testSuite->testCases = NULL;
-		free(testSuite);
-		testSuite = NULL;
 	}
 }
 

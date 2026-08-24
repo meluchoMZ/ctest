@@ -19,7 +19,7 @@
 		if (testSuite == NULL) { \
 			TestSuite *testSuite = createTestSuite(#suite); \
 			if (!addTestSuite(testStatus, testSuite)) { \
-				freeTestSuite(testSuite); \
+				freeTestSuite(&testSuite); \
 			} else { \
 				registerTestInSuite(testSuite, #name, #description, suite##_##name##_impl); \
 			} \
@@ -30,11 +30,45 @@
 	static void __attribute__((unused)) suite##_##name##_impl(void)
 
 // Public documented test functions
+
+/**
+ * Tests that the given `condition` is `true`
+ */
 void assertTrue(bool condition);
+
+/**
+ * Tests that the given `condition` is `true`
+ */
 void assertFalse(bool condition);
+
+/**
+ * Tests that the given pointer is `NULL`
+ */
 void assertNull(void *pointer);
+
+/**
+ * Tests that the given pointer is not `NULL`
+ */
 void assertNonNull(void *pointer);
-void assertByteEquals(uint8_t byte1, uint8_t byte2);
-void assertShortEquals(uint16_t short1, uint16_t short2);
+
+/**
+ * Tests that the given 8 bit integers have the same value
+ */
+void assert8BitIntEquals(uint8_t expected, uint8_t actual);
+
+/**
+ * Tests that the given 16 bit integers have the same value
+ */
+void assert16BitIntEquals(uint16_t expected, uint16_t actual);
+
+/**
+ * Tests that the given longs have the same value
+ */
+void assertLongEquals(long expected, long actual);
+
+/**
+ * Tests that the given strings are similar
+ */
+void assertStringEquals(const char *expected, const char *actual);
 
 #endif // __CTEST_API_H
