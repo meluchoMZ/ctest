@@ -273,20 +273,51 @@ int getTerminalWidth()
 }
 
 /**
- * Prints a test name followed by dots and end with [SUCESS] or [FAILURE]
+ * Prints a single test execution with elapsed time
  */
-void printTestResult(const char *testCaseName, int terminalWidth, bool success)
+void printTestResult(const char *testCaseName, int terminalWidth, bool success, double testExecutionTime)
 {
-	size_t remainingColumns = terminalWidth - strlen(testCaseName) - TEST_RESULT_MESSAGE_SIZE;
-	printf("%s", testCaseName);
+	size_t remainingColumns = terminalWidth - strlen(testCaseName) - TEST_RESULT_MESSAGE_SIZE - 6; // 6 cols padding
+	const char *statusSymbol = success
+		? GREEN "✓" RESET
+		: RED "✗" RESET;
+	char testExecutionStringBuffer[32];
+	int testExecutionStringSize = snprintf(testExecutionStringBuffer,
+			sizeof(testExecutionStringBuffer), "%.4f ms", testExecutionTime);
+	remainingColumns -= testExecutionStringSize;
+	printf("    %s %s", statusSymbol, testCaseName);
 	if (remainingColumns > 0) {
 		for (size_t i = 0; i < remainingColumns; ++i) {
-			putchar('.');
+			putchar(' ');
 		}
 	}
-	printf("%s\n", success ?
-			GREEN SUCCESS_MESSAGE RESET :
-			RED FAILURE_MESSAGE RESET);
+	printf("%s\n", testExecutionStringBuffer);
+}
+
+void printSuiteName(const char *name,int terminalWidth)
+{
+	size_t remainingColumns = terminalWidth - strlen(name) - 5; // 5 columns of padding + prefix
+	printf("--- %s ", name);
+	if (remainingColumns > 0) {
+		for (size_t i = 0; i < remainingColumns; ++i) {
+			putchar('-');
+		}
+	}
+	printf("\n");
+}
+
+double computeElapsedTimeInSeconds(struct timeval start, struct timeval finish)
+{
+	double elapsedTime = (finish.tv_sec - start.tv_sec) +
+		((finish.tv_usec - start.tv_usec) / (double) 1000000);
+	return elapsedTime;
+}
+
+double computeElapsedTimeInMiliseconds(struct timeval start, struct timeval finish)
+{
+	double elapsedTime = ((finish.tv_sec - start.tv_sec) * (double) 1000) +
+		((finish.tv_usec - start.tv_usec) / (double) 1000);
+	return elapsedTime;
 }
 
 /**
@@ -294,37 +325,53 @@ void printTestResult(const char *testCaseName, int terminalWidth, bool success)
  */
 void executeTests(TestStatus *testStatus)
 {
-	struct timeval tInit, tFinish;
-	double elapsedTime = 0;
+	struct timeval tInit, tFinish, singleTestStart, singleTestFinish;
+	double elapsedTime = 0, singleTestExecutionElapsedTime = 0;
 	long totalTests = 0;
 	long successfulTests = 0;
 	long failedTests = 0;
+	long suiteSuccessfulTests;
+	long suiteFailedTests;
 	int terminalWidth = getTerminalWidth();
 	printCTestLogo();
 	gettimeofday(&tInit, NULL);
-	printf("Found '%ld' test suites\n", testStatus->suiteCount);
 	for (long i = 0; i < testStatus->suiteCount; ++i) {
-		printf("Executing test suite %s. Tests found: %ld\n", testStatus->testSuites[i]->name,
-				testStatus->testSuites[i]->testCount);
+		totalTests += testStatus->testSuites[i]->testCount;
+	}
+	printf("CTest v%s (%ld suites, %ld tests) \n\n", CTEST_VERSION, testStatus->suiteCount, totalTests);
+	for (long i = 0; i < testStatus->suiteCount; ++i) {
+		printSuiteName(testStatus->testSuites[i]->name, terminalWidth);
+		suiteFailedTests = 0;
+		suiteSuccessfulTests = 0;
 		for (long j = 0; j < testStatus->testSuites[i]->testCount; ++j) {
+			gettimeofday(&singleTestStart, NULL);
 			TestResult result = executeTest(testStatus->testSuites[i]->testCases[j]->execute);
+			gettimeofday(&singleTestFinish, NULL);
+			singleTestExecutionElapsedTime = computeElapsedTimeInMiliseconds(singleTestStart, singleTestFinish);
 			testStatus->testSuites[i]->testCases[j]->executed = true;
 			testStatus->testSuites[i]->testCases[j]->testResult = result;
-			totalTests++;
-			result == SUCCESS ? successfulTests++ : failedTests++;
-			printTestResult(testStatus->testSuites[i]->testCases[j]->name, terminalWidth, result == SUCCESS);
+			result == SUCCESS ? suiteSuccessfulTests++ : suiteFailedTests++;
+			printTestResult(testStatus->testSuites[i]->testCases[j]->name, terminalWidth, result == SUCCESS,
+					singleTestExecutionElapsedTime);
 		}
+		successfulTests += suiteSuccessfulTests;
+		failedTests += suiteFailedTests;
+		printf("    PASS: [%ld/%ld]\n\n", suiteSuccessfulTests, suiteSuccessfulTests + suiteFailedTests);
 	}
 	gettimeofday(&tFinish, NULL);
-	elapsedTime = (tFinish.tv_sec - tInit.tv_sec) + ((tFinish.tv_usec - tInit.tv_usec) / (double) 1000000);
-	printf("\nSUMMARY REPORT\n");
-	printf("\tExecuted %ld tests from %ld test suites in %f seconds:\n", totalTests, testStatus->suiteCount, 
-			elapsedTime);
-	printf("\tSuccessful tests: " GREEN "%ld" RESET ", Failed tests:" RED "%ld" RESET "\n", successfulTests, failedTests);
-	if (failedTests == 0) {
-		printf("\t" GREEN "BUILD SUCCESS" RESET "\n");
+	elapsedTime = computeElapsedTimeInSeconds(tInit, tFinish);
+	for (int i = 0; i < terminalWidth; ++i) {
+		putchar('-');
+	}
+	if (elapsedTime < 1) {
+		printf("\n\nRESULTS: " GREEN "%ld" RESET " passed, " RED "%ld" RESET " failed in %.4f ms\n", successfulTests, failedTests, elapsedTime * (double) 1000);
 	} else {
-		printf("\t" RED "BUILD FAILURE" RESET "\n");
+		printf("\n\nRESULTS: " GREEN "%ld" RESET " passed, " RED "%ld" RESET " failed in %.4f s\n", successfulTests, failedTests, elapsedTime);
+	}
+	if (failedTests == 0) {
+		printf("STATUS:  " GREEN "SUCCESS" RESET "\n");
+	} else {
+		printf("STATUS:  " RED "FAILURE" RESET "\n");
 	}
 }
 
