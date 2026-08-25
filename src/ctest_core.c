@@ -210,20 +210,45 @@ void freeTestSuite(TestSuite **testSuitePtr)
  * Each test function has to be executed inside a child process, 
  * in order to be able to capture and store failures, especially
  * the ones related to signasl.
+ * Also redirects stdout and stderr to the parent process through
+ * a pipe so that the code executed in the test does not get
+ * shown to the user
  */
 TestResult executeTest(TestFunction testFunction)
 {
 	pid_t pid;
 	int status;
+	int pipefd[2];
+
+	if (pipe(pipefd) != 0) {
+		fprintf(stderr, "[CTEST] | Error | could not create pipe: %s\n", strerror(errno));
+		return CRASH_OTHER;
+	}
 	pid = fork();
 	if (pid == -1) {
+		close(pipefd[0]);
+		close(pipefd[1]);
 		fprintf(stderr, "[CTEST] | Error | could not create child process: %s\n", strerror(errno));
 		return CRASH_OTHER;
 	}
 	if (pid == 0) {
+		// child process is write only
+		close(pipefd[0]);
+		// close read end and redirect output and error output
+		dup2(pipefd[1], STDOUT_FILENO);
+		dup2(pipefd[1], STDERR_FILENO);
+		close(pipefd[1]);
 		testFunction();
 		exit(EXIT_SUCCESS);
 	}
+	// parent process is read only
+	close(pipefd[1]);
+	// TODO read output from child process and store as test info (show on failure)
+	// temporary read in a temporary buffer and discard
+	char childProcessOutput[4096];
+	read(pipefd[0], childProcessOutput, 4096 - 1);
+	close(pipefd[0]);
+
 	waitpid(pid, &status, 0);
 	if (WIFEXITED(status)) {
 	return WEXITSTATUS(status) == EXIT_SUCCESS ? SUCCESS : FAILURE;
