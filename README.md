@@ -47,3 +47,7 @@ gcc -o test_example test_example.c -lctest
 ## Documentation
 
 Coming soon
+
+## Screenshots
+
+![image](images/successful_screenshot.png)
