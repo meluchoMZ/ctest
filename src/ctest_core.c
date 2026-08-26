@@ -98,7 +98,7 @@ bool addTestCase(TestSuite *testSuite, TestCase *testCase)
 	}
 
 	for (int i = 0; i < testSuite->testCount; ++i) {
-		if (strcmp(testSuite->name, testSuite->testCases[i]->name) == 0) {
+		if (strcmp(testCase->name, testSuite->testCases[i]->name) == 0) {
 			fprintf(stderr, "[CTEST] | Error | cannot add TestCase '%s': test case already exists\n", testSuite->name);
 			return false;
 		}
