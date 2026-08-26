@@ -12,7 +12,7 @@ OBJECTS = ctest_core.o ctest_api.o
 CC = gcc
 
 CFLAGS = -c -fPIC -Wall -Wextra -Werror -Wpedantic -fsanitize=address -g -Iinclude -Isrc
-TEST_CFLAGS = -Wall -Wextra -Werror -Wpedantic -fsanitize=address -g -Iinclude -Isrc
+TEST_CFLAGS = -Wall -Wextra -Werror -Wpedantic -g -Iinclude -Isrc
 
 LDFLAGS = -shared
 

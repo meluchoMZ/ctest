@@ -107,7 +107,7 @@ TEST(TestCaseTests, addTestCaseToSuiteForcingRealloc, Tests that a TestCase is c
 	const char *name2 = "testCase2";
 	TestCase *testCase2 = createTestCase(name2, suite, desc, sampleTestFunction);
 	addTestCase(testSuite, testCase2);
-	//assertLongEquals(12, testSuite->testCaseSize);
+	assertLongEquals(11, testSuite->testCaseSize);
 	assertLongEquals(2,  testSuite->testCount);
 	freeTestSuite(&testSuite);
 }

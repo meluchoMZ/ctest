@@ -42,6 +42,16 @@ typedef enum
 	FAILURE,
 	CRASH_SEGV,
 	CRASH_OTHER
+} TestExecutionStatus;
+
+/**
+ * Test execution info, contains test execution status and logs (stderr, stdout)
+ * written during the test execution
+ */
+typedef struct TestResult
+{
+	TestExecutionStatus status;
+	char *logs;
 } TestResult;
 
 /**
@@ -55,7 +65,7 @@ typedef struct TestCase
 	// function pointer to the test function the test executes
 	TestFunction execute;
 	bool executed;
-	TestResult testResult;
+	TestResult *testResult;
 } TestCase;
 
 /**

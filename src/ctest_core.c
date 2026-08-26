@@ -54,6 +54,39 @@ static void __attribute__((destructor)) finalizeTests(void)
 	}
 }	
 
+TestResult * createTestResult(TestExecutionStatus status, const char *logs, size_t logSize)
+{
+	TestResult *testResult = malloc(sizeof(TestResult));
+	if (testResult == NULL) {
+		fprintf(stderr, "[CTEST] | Error | could not allocate memory for TestResult element: %s\n",
+				strerror(errno));
+		return NULL;
+	}
+	testResult->status = status;
+	if (logSize > 0 && logs != NULL) {
+		testResult->logs = malloc(logSize + 1 * sizeof(char));
+		if (testResult->logs == NULL) {
+			fprintf(stderr, "[CTEST] | Error | could not allocate memory for TestResult.logs: %s\n",
+					strerror(errno));
+			return testResult;
+		}
+		for (size_t i = 0; i < logSize; ++i) {
+			testResult->logs[i] = logs[i];
+		}
+		testResult->logs[logSize] = '\0';
+	}
+	return testResult;
+}
+
+void freeTestResult(TestResult **testResult)
+{
+	if (testResult != NULL && *testResult != NULL) {
+		free((*testResult)->logs);
+		(*testResult)->logs = NULL;
+		*testResult = NULL;
+	}
+}
+
 TestCase * createTestCase(const char *testName, const char *testSuite, const char *description, 
 		TestFunction testFunction)
 {
@@ -72,6 +105,7 @@ TestCase * createTestCase(const char *testName, const char *testSuite, const cha
 void freeTestCase(TestCase *testCase)
 {
 	if (testCase != NULL) {
+		freeTestResult(&testCase->testResult);
 		free(testCase);
 		testCase = NULL;
 	}
@@ -214,22 +248,25 @@ void freeTestSuite(TestSuite **testSuitePtr)
  * a pipe so that the code executed in the test does not get
  * shown to the user
  */
-TestResult executeTest(TestFunction testFunction)
+TestResult * executeTest(TestFunction testFunction)
 {
 	pid_t pid;
 	int status;
 	int pipefd[2];
+	const int bufferSize = 4096;
+	char childProcessOutput[bufferSize];
+	size_t bytesRead = 0;
 
 	if (pipe(pipefd) != 0) {
 		fprintf(stderr, "[CTEST] | Error | could not create pipe: %s\n", strerror(errno));
-		return CRASH_OTHER;
+		return createTestResult(CRASH_OTHER, NULL, 0);
 	}
 	pid = fork();
 	if (pid == -1) {
 		close(pipefd[0]);
 		close(pipefd[1]);
 		fprintf(stderr, "[CTEST] | Error | could not create child process: %s\n", strerror(errno));
-		return CRASH_OTHER;
+		return createTestResult(CRASH_OTHER, NULL, 0);
 	}
 	if (pid == 0) {
 		// child process is write only
@@ -245,20 +282,21 @@ TestResult executeTest(TestFunction testFunction)
 	close(pipefd[1]);
 	// TODO read output from child process and store as test info (show on failure)
 	// temporary read in a temporary buffer and discard
-	char childProcessOutput[4096];
-	read(pipefd[0], childProcessOutput, 4096 - 1);
+	bytesRead = read(pipefd[0], childProcessOutput, bufferSize - 1);
 	close(pipefd[0]);
 
 	waitpid(pid, &status, 0);
 	if (WIFEXITED(status)) {
-	return WEXITSTATUS(status) == EXIT_SUCCESS ? SUCCESS : FAILURE;
+	return WEXITSTATUS(status) == EXIT_SUCCESS ?
+	   createTestResult(SUCCESS, childProcessOutput, bytesRead) :
+	   createTestResult(FAILURE, childProcessOutput, bytesRead);
 	}
 	if (WIFSIGNALED(status)) {
 		if (WTERMSIG(status) == SIGSEGV) {
-			return CRASH_SEGV;
+			return createTestResult(CRASH_SEGV, childProcessOutput, bytesRead);
 		}
 	}
-	return CRASH_OTHER;	
+	return createTestResult(CRASH_OTHER, childProcessOutput, bytesRead);
 }
 
 /**
@@ -300,10 +338,10 @@ int getTerminalWidth()
 /**
  * Prints a single test execution with elapsed time
  */
-void printTestResult(const char *testCaseName, int terminalWidth, bool success, double testExecutionTime)
+void printTestResult(const char *testCaseName, int terminalWidth, double testExecutionTime, TestResult *testResult)
 {
 	size_t remainingColumns = terminalWidth - strlen(testCaseName) - TEST_RESULT_MESSAGE_SIZE - 6; // 6 cols padding
-	const char *statusSymbol = success
+	const char *statusSymbol = testResult->status == SUCCESS
 		? GREEN "✓" RESET
 		: RED "✗" RESET;
 	char testExecutionStringBuffer[32];
@@ -317,6 +355,10 @@ void printTestResult(const char *testCaseName, int terminalWidth, bool success, 
 		}
 	}
 	printf("%s\n", testExecutionStringBuffer);
+	// print all child process STDOUT and STDERR logs as errors
+	if (testResult->logs != NULL && testResult->status != SUCCESS) {
+		printf(RED "%s\n" RESET, testResult->logs);
+	}
 }
 
 void printSuiteName(const char *name,int terminalWidth)
@@ -370,14 +412,15 @@ void executeTests(TestStatus *testStatus)
 		suiteSuccessfulTests = 0;
 		for (long j = 0; j < testStatus->testSuites[i]->testCount; ++j) {
 			gettimeofday(&singleTestStart, NULL);
-			TestResult result = executeTest(testStatus->testSuites[i]->testCases[j]->execute);
+			testStatus->testSuites[i]->testCases[j]->testResult =
+				executeTest(testStatus->testSuites[i]->testCases[j]->execute);
 			gettimeofday(&singleTestFinish, NULL);
 			singleTestExecutionElapsedTime = computeElapsedTimeInMiliseconds(singleTestStart, singleTestFinish);
 			testStatus->testSuites[i]->testCases[j]->executed = true;
-			testStatus->testSuites[i]->testCases[j]->testResult = result;
-			result == SUCCESS ? suiteSuccessfulTests++ : suiteFailedTests++;
-			printTestResult(testStatus->testSuites[i]->testCases[j]->name, terminalWidth, result == SUCCESS,
-					singleTestExecutionElapsedTime);
+			testStatus->testSuites[i]->testCases[j]->testResult->status == SUCCESS ?
+				suiteSuccessfulTests++ : suiteFailedTests++;
+			printTestResult(testStatus->testSuites[i]->testCases[j]->name, terminalWidth,
+					singleTestExecutionElapsedTime, testStatus->testSuites[i]->testCases[j]->testResult);
 		}
 		successfulTests += suiteSuccessfulTests;
 		failedTests += suiteFailedTests;
