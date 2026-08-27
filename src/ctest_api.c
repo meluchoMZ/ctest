@@ -7,6 +7,7 @@
 
 #include <execinfo.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -68,6 +69,87 @@ void assertNonNull(const char *filePath, int line, void *pointer)
 	if (pointer == NULL) {
 		char errorBuffer[64];
 		snprintf(errorBuffer, 64, "actual: NULL, expected: %p", pointer);
+		endTestWithError(filePath, line, __func__, errorBuffer);
+	}
+}
+
+void assert8BitUIntEquals(const char *filePath, int line, uint8_t expected, uint8_t actual)
+{
+	if (expected != actual) {
+		char errorBuffer[64];
+		snprintf(errorBuffer, 64, "actual: %d, expected: %d", actual, expected);
+		endTestWithError(filePath, line, __func__, errorBuffer);
+	}
+}
+
+void assert16BitUIntEquals(const char *filePath, int line, uint16_t expected, uint16_t actual)
+{
+	if (expected != actual) {
+		char errorBuffer[64];
+		snprintf(errorBuffer, 64, "actual: %d, expected: %d", actual, expected);
+		endTestWithError(filePath, line, __func__, errorBuffer);
+	}
+}
+
+void assert32BitUIntEquals(const char *filePath, int line, uint32_t expected, uint32_t actual)
+{
+	if (expected != actual) {
+		char errorBuffer[64];
+		snprintf(errorBuffer, 64, "actual: %d, expected: %d", actual, expected);
+		endTestWithError(filePath, line, __func__, errorBuffer);
+	}
+}
+
+void assert64BitUIntEquals(const char *filePath, int line, uint64_t expected, uint64_t actual)
+{
+	if (expected != actual) {
+		char errorBuffer[64];
+		snprintf(errorBuffer, 64, "actual: %ld, expected: %ld", actual, expected);
+		endTestWithError(filePath, line, __func__, errorBuffer);
+	}
+}
+
+void assert8BitIntEquals(const char *filePath, int line, int8_t expected, int8_t actual)
+{
+	if (expected != actual) {
+		char errorBuffer[64];
+		snprintf(errorBuffer, 64, "actual: %d, expected: %d", actual, expected);
+		endTestWithError(filePath, line, __func__, errorBuffer);
+	}
+}
+
+void assert16BitIntEquals(const char *filePath, int line, int16_t expected, int16_t actual)
+{
+	if (expected != actual) {
+		char errorBuffer[64];
+		snprintf(errorBuffer, 64, "actual: %d, expected: %d", actual, expected);
+		endTestWithError(filePath, line, __func__, errorBuffer);
+	}
+}
+
+void assert32BitIntEquals(const char *filePath, int line, int32_t expected, int32_t actual)
+{
+	if (expected != actual) {
+		char errorBuffer[64];
+		snprintf(errorBuffer, 64, "actual: %d, expected: %d", actual, expected);
+		endTestWithError(filePath, line, __func__, errorBuffer);
+	}
+}
+
+void assert64BitIntEquals(const char *filePath, int line, int64_t expected, int64_t actual)
+{
+	if (expected != actual) {
+		char errorBuffer[64];
+		snprintf(errorBuffer, 64, "actual: %ld, expected: %ld", actual, expected);
+		endTestWithError(filePath, line, __func__, errorBuffer);
+	}
+}
+
+void assertIntEquals(const char *filePath, int line, long expected, long actual)
+{
+	if (expected != actual) {
+		char errorBuffer[64];
+		snprintf(errorBuffer, 64, "actual: %ld, expected: %ld", actual, expected);
 		endTestWithError(filePath, line, __func__, errorBuffer);
 	}
 }
