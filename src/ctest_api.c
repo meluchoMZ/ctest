@@ -31,44 +31,44 @@ void printCallerStackTrace(void)
 	free(stackTrace);
 }
 
-void endTestWithError(const char *file, int line, const char *caller, const char *error)
+void endTestWithError(const char *filePath, int line, const char *caller, const char *error)
 {
-	fprintf(stderr, "[CTEST] Assertion error in '%s:%d' | %s | %s\n", file, line, caller, error);
+	fprintf(stderr, "[CTEST] Assertion error in '%s:%d' | %s | %s\n", filePath, line, caller, error);
 	printCallerStackTrace();
 	// flush buffers to avoid data loss through the child - parent pipe
 	fflush(stdout); fflush(stderr);
 	_Exit(EXIT_FAILURE);
 }
 
-void assertTrue(bool condition)
+void assertTrue(const char *filePath, int line, bool condition)
 {
 	if (!condition) {
-		fprintf(stderr, "[CTEST] | Error | actual: FALSE, expected: TRUE\n");
-		_Exit(EXIT_FAILURE);
+		endTestWithError(filePath, line, __func__, "actual: FALSE, expected: TRUE");
 	}
 }
 
-void assertFalse(bool condition)
+void assertFalse(const char *filePath, int line, bool condition)
 {
 	if (condition) {
-		fprintf(stderr, "[CTEST] | Error | actual: TRUE, expected: FALSE\n");
-		_Exit(EXIT_FAILURE);
+		endTestWithError(filePath, line, __func__, "actual: TRUE, expected: FALSE");
 	}
 }
 
-void assertNull(void *pointer)
+void assertNull(const char *filePath, int line, void *pointer)
 {
 	if (pointer != NULL) {
-		fprintf(stderr, "[CTEST] | Error | assertNull: actual: %p, expected: NULL\n", pointer);
-		_Exit(EXIT_FAILURE);
+		char errorBuffer[64];
+		snprintf(errorBuffer, 64, "actual: %p, expected: NULL", pointer);
+		endTestWithError(filePath, line, __func__, errorBuffer);
 	}
 }
 
-void assertNonNull(void *pointer)
+void assertNonNull(const char *filePath, int line, void *pointer)
 {
 	if (pointer == NULL) {
-		fprintf(stderr, "[CTEST] | Error | assertNonNull: actual: NULL, expected: %p\n", pointer);
-		_Exit(EXIT_FAILURE);
+		char errorBuffer[64];
+		snprintf(errorBuffer, 64, "actual: NULL, expected: %p", pointer);
+		endTestWithError(filePath, line, __func__, errorBuffer);
 	}
 }
 
@@ -81,18 +81,20 @@ void assertLongEquals(const char *filePath, int line, long expected, long actual
 	}
 }
 
-void assertStringEquals(const char *expected, const char *actual)
+void assertStringEquals(const char *filePath, int line, const char *expected, const char *actual)
 {
+	char errorBuffer[64];
+	snprintf(errorBuffer, 64, "actual: %s, expected: %s", actual, expected);
 	if (expected == NULL && actual == NULL) {
 		return;
 	}
 	if (expected == NULL && actual != NULL) {
-		_Exit(EXIT_FAILURE);
+		endTestWithError(filePath, line, __func__, errorBuffer);
 	}
 	if (expected != NULL && actual == NULL) {
-		_Exit(EXIT_FAILURE);
+		endTestWithError(filePath, line, __func__, errorBuffer);
 	}
 	if (strcmp(expected, actual) != 0) {
-		_Exit(EXIT_FAILURE);
+		endTestWithError(filePath, line, __func__, errorBuffer);
 	}
 }

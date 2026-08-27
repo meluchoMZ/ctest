@@ -34,32 +34,50 @@
 /**
  * Tests that the given `condition` is `true`
  */
-void assertTrue(bool condition);
+#define ASSERT_TRUE(condition) \
+	assertTrue(__FILE__, __LINE__, condition)
+
+void assertTrue(const char *filePath, int line, bool condition);
 
 /**
  * Tests that the given `condition` is `true`
  */
-void assertFalse(bool condition);
+#define ASSERT_FALSE(condition) \
+	assertFalse(__FILE__, __LINE__, condition)
+
+void assertFalse(const char *filePath, int line, bool condition);
 
 /**
  * Tests that the given pointer is `NULL`
  */
-void assertNull(void *pointer);
+#define ASSERT_NULL(pointer) \
+	assertFalse(__FILE__, __LINE__, pointer)
+
+void assertNull(const char *filePath, int line, void *pointer);
 
 /**
  * Tests that the given pointer is not `NULL`
  */
-void assertNonNull(void *pointer);
+#define ASSERT_NON_NULL(pointer) \
+	assertNonNull(__FILE__, __LINE__, pointer)
+
+void assertNonNull(const char *filePath, int line, void *pointer);
 
 /**
  * Tests that the given 8 bit integers have the same value
  */
-void assert8BitIntEquals(uint8_t expected, uint8_t actual);
+#define ASSERT_8_BIT_INT_EQUALS(expected, actual) \
+	assert8BitIntEquals(__FILE__, __LINE__, expected, actual)
+
+void assert8BitIntEquals(const char *filePath, int line, uint8_t expected, uint8_t actual);
 
 /**
  * Tests that the given 16 bit integers have the same value
  */
-void assert16BitIntEquals(uint16_t expected, uint16_t actual);
+#define ASSERT_16_BIT_INT_EQUALS(expected, actual) \
+	assert16BitIntEquals(__FILE__, __LINE__, expected, actual)
+
+void assert16BitIntEquals(const char *filePath, int line, uint16_t expected, uint16_t actual);
 
 /**
  * Tests that the given longs have the same value
@@ -72,6 +90,9 @@ void assertLongEquals(const char *filePath, int line, long expected, long actual
 /**
  * Tests that the given strings are similar
  */
-void assertStringEquals(const char *expected, const char *actual);
+#define ASSERT_STRING_EQUALS(expected, actual) \
+	assertStringEquals(__FILE__, __LINE__, expected, actual)
+
+void assertStringEquals(const char *filePath, int line, const char *expected, const char *actual);
 
 #endif // __CTEST_API_H

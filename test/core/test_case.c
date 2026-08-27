@@ -26,10 +26,10 @@ TEST(TestCaseTests, createTestCase, Tests that a TestCase is created correctly)
 	const char *suite = "sutie";
 	const char *desc = "description";
 	TestCase *testCase = createTestCase(name, suite, desc, sampleTestFunction);
-	assertNonNull(testCase);
-	assertStringEquals(name, testCase->name);
-	assertStringEquals(suite, testCase->suiteName);
-	assertStringEquals(desc, testCase->description);
+	ASSERT_NON_NULL(testCase);
+	ASSERT_STRING_EQUALS(name, testCase->name);
+	ASSERT_STRING_EQUALS(suite, testCase->suiteName);
+	ASSERT_STRING_EQUALS(desc, testCase->description);
 	assertPointerEquals(sampleTestFunction, testCase->execute);
 	free(testCase);
 }
@@ -40,12 +40,11 @@ TEST(TestCaseTests, freeTestCase, Tests that a TestCase is freed correctly)
 	const char *suite = "sutie";
 	const char *desc = "description";
 	TestCase *testCase = createTestCase(name, suite, desc, sampleTestFunction);
-	assertNonNull(testCase);
-	assertStringEquals(name, testCase->name);
-	assertStringEquals(suite, testCase->suiteName);
-	assertStringEquals(desc, testCase->description);
+	ASSERT_NON_NULL(testCase);
+	ASSERT_STRING_EQUALS(name, testCase->name);
+	ASSERT_STRING_EQUALS(suite, testCase->suiteName);
+	ASSERT_STRING_EQUALS(desc, testCase->description);
 	assertPointerEquals(sampleTestFunction, testCase->execute);
-	// if the function does not frees the memory, the test will fail due to the address sanitizer
 	freeTestCase(testCase);
 }
 
@@ -55,9 +54,9 @@ TEST(TestCaseTests, addTestCaseToSuite, Tests that a TestCase is correctly added
 	const char *suite = "sutie";
 	const char *desc = "description";
 	TestCase *testCase = createTestCase(name, suite, desc, sampleTestFunction);
-	assertNonNull(testCase);
+	ASSERT_NON_NULL(testCase);
 	TestSuite *testSuite = createTestSuite(suite);
-	assertNonNull(testSuite);
+	ASSERT_NON_NULL(testSuite);
 	ASSERT_LONG_EQUALS(10, testSuite->testCaseSize);
 	ASSERT_LONG_EQUALS(0, testSuite->testCount);
 	addTestCase(testSuite, testCase);
@@ -72,9 +71,9 @@ TEST(TestCaseTests, addTestCaseAlreadyAdded, Tests that a already added TestCase
 	const char *suite = "sutie";
 	const char *desc = "description";
 	TestCase *testCase = createTestCase(name, suite, desc, sampleTestFunction);
-	assertNonNull(testCase);
+	ASSERT_NON_NULL(testCase);
 	TestSuite *testSuite = createTestSuite(suite);
-	assertNonNull(testSuite);
+	ASSERT_NON_NULL(testSuite);
 	ASSERT_LONG_EQUALS(10, testSuite->testCaseSize);
 	ASSERT_LONG_EQUALS(0, testSuite->testCount);
 	addTestCase(testSuite, testCase);
@@ -92,11 +91,11 @@ TEST(TestCaseTests, addTestCaseToSuiteForcingRealloc, Tests that a TestCase is c
 	const char *suite = "sutie";
 	const char *desc = "description";
 	TestCase *testCase = createTestCase(name, suite, desc, sampleTestFunction);
-	assertNonNull(testCase);
+	ASSERT_NON_NULL(testCase);
 	TestSuite *testSuite = malloc(sizeof(TestSuite));
-	assertNonNull(testSuite);
+	ASSERT_NON_NULL(testSuite);
 	testSuite->testCases = malloc(sizeof(TestCase));
-	assertNonNull(testSuite->testCases);
+	ASSERT_NON_NULL(testSuite->testCases);
 	testSuite->testCaseSize = 1;
 	testSuite->testCount = 0;
 	ASSERT_LONG_EQUALS(1, testSuite->testCaseSize);

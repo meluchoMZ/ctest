@@ -10,8 +10,8 @@ TEST(TestSuitesTests, createTestSuite, Tests the creation of a TestSuite element
 {
 	const char * expectedSuiteName = "testSuite";
 	TestSuite *actual = createTestSuite(expectedSuiteName);
-	assertStringEquals(expectedSuiteName, actual->name);
-	assertNonNull(actual->testCases);
+	ASSERT_STRING_EQUALS(expectedSuiteName, actual->name);
+	ASSERT_NON_NULL(actual->testCases);
 	ASSERT_LONG_EQUALS(10, actual->testCaseSize);
 	ASSERT_LONG_EQUALS(0, actual->testCount);
 	free(actual->testCases);
@@ -23,28 +23,28 @@ TEST(TestSuitesTests, createTestSuite, Tests the creation of a TestSuite element
 TEST(TestSuitesTests, freeTestSuite, Tests the liberation of a TestSuite element)
 {
 	TestSuite *testSuite = malloc(sizeof(TestSuite));
-	assertNonNull(testSuite);
+	ASSERT_NON_NULL(testSuite);
 	testSuite->testCases = malloc(sizeof(TestCase));
-	assertNonNull(testSuite->testCases);
+	ASSERT_NON_NULL(testSuite->testCases);
 	freeTestSuite(&testSuite);
 }
 
 TEST(TestSuitesTests, freeTestSuiteWithNullTestCases, Tests the liberation of a TestSuite element if the inner TestCase pointer is NULL)
 {
 	TestSuite *testSuite = malloc(sizeof(TestSuite));
-	assertNonNull(testSuite);
+	ASSERT_NON_NULL(testSuite);
 	testSuite->testCases = NULL;
-	assertNull(testSuite->testCases);
+	ASSERT_NULL(testSuite->testCases);
 	freeTestSuite(&testSuite);
-	assertNull(testSuite);
+	ASSERT_NULL(testSuite);
 }
 
 TEST(TestSuitesTests, freeNullTestSuite, Tests the liberation of a TestSuite element does not double free a NULL TestSuite)
 {
 	TestSuite *testSuite = NULL;
-	assertNull(testSuite);
+	ASSERT_NULL(testSuite);
 	freeTestSuite(&testSuite);
-	assertNull(testSuite);
+	ASSERT_NULL(testSuite);
 }
 
 TEST(TestSuitesTests, addTestSuite, Tests the addition of a TestSuite)
@@ -52,17 +52,17 @@ TEST(TestSuitesTests, addTestSuite, Tests the addition of a TestSuite)
 	const char *testName = "test";
 	TestStatus testStatus;
 	testStatus.testSuites = malloc(sizeof(TestSuite));
-	assertNonNull(testStatus.testSuites);
+	ASSERT_NON_NULL(testStatus.testSuites);
 	testStatus.testSuitesSize = 1;
 	testStatus.suiteCount = 0;
 	TestSuite *testSuite = createTestSuite(testName);
-	assertNonNull(testSuite);
+	ASSERT_NON_NULL(testSuite);
 	addTestSuite(&testStatus, testSuite);
 	ASSERT_LONG_EQUALS(testStatus.testSuitesSize, 1);
 	ASSERT_LONG_EQUALS(testStatus.suiteCount, 1);
-	assertStringEquals(testSuite->name, testStatus.testSuites[0]->name);
+	ASSERT_STRING_EQUALS(testSuite->name, testStatus.testSuites[0]->name);
 	freeTestSuite(&testSuite);
-	assertNull(testSuite);
+	ASSERT_NULL(testSuite);
 	free(testStatus.testSuites);
 }
 
@@ -71,21 +71,21 @@ TEST(TestSuitesTests, addTestSuiteDuplicate, Tests the addition of a TestSuite t
 	const char *testName = "test";
 	TestStatus testStatus;
 	testStatus.testSuites = malloc(2* sizeof(TestSuite));
-	assertNonNull(testStatus.testSuites);
+	ASSERT_NON_NULL(testStatus.testSuites);
 	testStatus.testSuitesSize = 2;
 	testStatus.suiteCount = 0;
 	TestSuite *testSuite = createTestSuite(testName);
-	assertNonNull(testSuite);
+	ASSERT_NON_NULL(testSuite);
 	addTestSuite(&testStatus, testSuite);
 	ASSERT_LONG_EQUALS(testStatus.testSuitesSize, 2);
 	ASSERT_LONG_EQUALS(testStatus.suiteCount, 1);
-	assertStringEquals(testSuite->name, testStatus.testSuites[0]->name);
+	ASSERT_STRING_EQUALS(testSuite->name, testStatus.testSuites[0]->name);
 	addTestSuite(&testStatus, testSuite);
 	ASSERT_LONG_EQUALS(testStatus.testSuitesSize, 2);
 	ASSERT_LONG_EQUALS(testStatus.suiteCount, 1);
-	assertStringEquals(testSuite->name, testStatus.testSuites[0]->name);
+	ASSERT_STRING_EQUALS(testSuite->name, testStatus.testSuites[0]->name);
 	freeTestSuite(&testSuite);
-	assertNull(testSuite);
+	ASSERT_NULL(testSuite);
 	free(testStatus.testSuites);
 }
 
@@ -93,7 +93,7 @@ TEST(TestSuitesTests, findTestSuiteNullTestStatus, Tests the findSuite does not 
 {
 	const char *suiteName = "test";
 	TestSuite *testSuite = findSuite(NULL, suiteName);
-	assertNull(testSuite);
+	ASSERT_NULL(testSuite);
 }
 
 TEST(TestSuitesTests, findTestSuite, Tests the TestSuite element search function by name over the TestStatus element)
@@ -115,8 +115,8 @@ TEST(TestSuitesTests, findTestSuite, Tests the TestSuite element search function
 	addTestSuite(&testStatus, expected);
 	addTestSuite(&testStatus, example3);
 	TestSuite *actual = findSuite(&testStatus, testName);
-	assertNonNull(actual);
-	assertStringEquals(expected->name, actual->name);
+	ASSERT_NON_NULL(actual);
+	ASSERT_STRING_EQUALS(expected->name, actual->name);
 	ASSERT_LONG_EQUALS(expected->testCount, actual->testCount);
 	ASSERT_LONG_EQUALS(expected->testCaseSize, actual->testCaseSize);
 	freeTestSuite(&example1);
@@ -130,10 +130,10 @@ TEST(TestSuitesTests, findTestSuiteNullSuiteName, Tests the findSuite function w
 {
 	TestStatus testStatus;
 	testStatus.testSuites = malloc(sizeof(TestSuite));
-	assertNonNull(testStatus.testSuites);
+	ASSERT_NON_NULL(testStatus.testSuites);
 	testStatus.testSuitesSize = 1;
 	testStatus.suiteCount = 0;
 	TestSuite *actual = findSuite(&testStatus, NULL);
-	assertNull(actual);
+	ASSERT_NULL(actual);
 	free(testStatus.testSuites);
 }

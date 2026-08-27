@@ -95,6 +95,16 @@ typedef struct TestStatus
 extern TestStatus *testStatus;
 
 // Non documented functions
+
+/**
+ * Creates a TestResult element and initializes its content
+ */
+TestResult *createTestResult(TestExecutionStatus status, const char *logs, size_t logSize);
+
+/**
+ * Frees all the allocated memory in a TestResult element
+ */
+void freeTestResult(TestResult **testResult);
 /**
  * Creates a TestCase element and initilizes its content
  */
