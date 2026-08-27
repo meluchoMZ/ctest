@@ -29,12 +29,12 @@ Include `<ctest_api.h>` in your test source files, write your test cases, and co
 
 TEST(MathSuite, AdditionTest, "Verifies basic addition operations") {
     int result = 2 + 2;
-    assertTrue(result == 4);
+    ASSERT_TRUE(result == 4);
 }
 
 TEST(MathSuite, SubtractionTest, "Verifies basic subtraction operations") {
     int result = 5 - 3;
-    assertFalse(result == 0);
+    ASSERT_TRUE(result == 0);
 }
 ```
 
