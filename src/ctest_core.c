@@ -63,6 +63,7 @@ TestResult * createTestResult(TestExecutionStatus status, const char *logs, size
 		return NULL;
 	}
 	testResult->status = status;
+	testResult->logs   = NULL;
 	if (logSize > 0 && logs != NULL) {
 		testResult->logs = malloc(logSize + 1 * sizeof(char));
 		if (testResult->logs == NULL) {
@@ -81,8 +82,11 @@ TestResult * createTestResult(TestExecutionStatus status, const char *logs, size
 void freeTestResult(TestResult **testResult)
 {
 	if (testResult != NULL && *testResult != NULL) {
-		free((*testResult)->logs);
-		(*testResult)->logs = NULL;
+		if ((*testResult)->logs != NULL) {
+			free((*testResult)->logs);
+			(*testResult)->logs = NULL;
+		}
+		free(*testResult);
 		*testResult = NULL;
 	}
 }
@@ -253,7 +257,7 @@ TestResult * executeTest(TestFunction testFunction)
 	pid_t pid;
 	int status;
 	int pipefd[2];
-	const int bufferSize = 4096;
+	const int bufferSize = 65535;
 	char childProcessOutput[bufferSize];
 	size_t bytesRead = 0;
 
@@ -268,6 +272,8 @@ TestResult * executeTest(TestFunction testFunction)
 		fprintf(stderr, "[CTEST] | Error | could not create child process: %s\n", strerror(errno));
 		return createTestResult(CRASH_OTHER, NULL, 0);
 	}
+	// flush buffers to child process has 'clean' output and error buffers
+	fflush(stdout); fflush(stderr);
 	if (pid == 0) {
 		// child process is write only
 		close(pipefd[0]);
@@ -276,16 +282,16 @@ TestResult * executeTest(TestFunction testFunction)
 		dup2(pipefd[1], STDERR_FILENO);
 		close(pipefd[1]);
 		testFunction();
-		exit(EXIT_SUCCESS);
+		_Exit(EXIT_SUCCESS);
 	}
 	// parent process is read only
 	close(pipefd[1]);
+
+	waitpid(pid, &status, 0);
 	// TODO read output from child process and store as test info (show on failure)
 	// temporary read in a temporary buffer and discard
 	bytesRead = read(pipefd[0], childProcessOutput, bufferSize - 1);
 	close(pipefd[0]);
-
-	waitpid(pid, &status, 0);
 	if (WIFEXITED(status)) {
 	return WEXITSTATUS(status) == EXIT_SUCCESS ?
 	   createTestResult(SUCCESS, childProcessOutput, bytesRead) :

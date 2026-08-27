@@ -11,8 +11,8 @@ OBJECTS = ctest_core.o ctest_api.o
 
 CC = gcc
 
-CFLAGS = -c -fPIC -Wall -Wextra -Werror -Wpedantic -fsanitize=address -g -Iinclude -Isrc
-TEST_CFLAGS = -Wall -Wextra -Werror -Wpedantic -g -Iinclude -Isrc
+CFLAGS = -c -fPIC -Wall -Wextra -Werror -Wpedantic -fsanitize=address -g -rdynamic -Iinclude -Isrc
+TEST_CFLAGS = -Wall -Wextra -Werror -Wpedantic -g -rdynamic -Iinclude -Isrc
 
 LDFLAGS = -shared
 
@@ -30,7 +30,7 @@ $(TARGET): $(SRC)
 
 test: $(TEST_SRC)
 	@echo "Compiling $(TEST_TARGET)..."
-	$(CC) $(TEST_CFLAGS) -o $(TEST_TARGET) $(SRC) $(TEST_SRC) && ./ctest_test
+	$(CC) $(TEST_CFLAGS) -o $(TEST_TARGET) $(SRC) $(TEST_SRC) && ./$(TEST_TARGET)
 
 install: $(TARGET)
 	@echo "Installing $(TARGET) to $(LIB_DIR)..."

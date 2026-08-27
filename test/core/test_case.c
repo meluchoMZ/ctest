@@ -16,7 +16,7 @@ void sampleTestFunction(void)
 void assertPointerEquals(TestFunction expected, TestFunction actual)
 {
 	if (!(expected == actual)) {
-		exit(EXIT_FAILURE);
+		_Exit(EXIT_FAILURE);
 	}
 }
 
@@ -58,11 +58,11 @@ TEST(TestCaseTests, addTestCaseToSuite, Tests that a TestCase is correctly added
 	assertNonNull(testCase);
 	TestSuite *testSuite = createTestSuite(suite);
 	assertNonNull(testSuite);
-	assertLongEquals(10, testSuite->testCaseSize);
-	assertLongEquals(0, testSuite->testCount);
+	ASSERT_LONG_EQUALS(10, testSuite->testCaseSize);
+	ASSERT_LONG_EQUALS(0, testSuite->testCount);
 	addTestCase(testSuite, testCase);
-	assertLongEquals(10, testSuite->testCaseSize);
-	assertLongEquals(1, testSuite->testCount);
+	ASSERT_LONG_EQUALS(10, testSuite->testCaseSize);
+	ASSERT_LONG_EQUALS(1, testSuite->testCount);
 	freeTestSuite(&testSuite);
 }
 
@@ -75,14 +75,14 @@ TEST(TestCaseTests, addTestCaseAlreadyAdded, Tests that a already added TestCase
 	assertNonNull(testCase);
 	TestSuite *testSuite = createTestSuite(suite);
 	assertNonNull(testSuite);
-	assertLongEquals(10, testSuite->testCaseSize);
-	assertLongEquals(0, testSuite->testCount);
+	ASSERT_LONG_EQUALS(10, testSuite->testCaseSize);
+	ASSERT_LONG_EQUALS(0, testSuite->testCount);
 	addTestCase(testSuite, testCase);
-	assertLongEquals(10, testSuite->testCaseSize);
-	assertLongEquals(1, testSuite->testCount);
+	ASSERT_LONG_EQUALS(10, testSuite->testCaseSize);
+	ASSERT_LONG_EQUALS(1, testSuite->testCount);
 	addTestCase(testSuite, testCase);
-	assertLongEquals(10, testSuite->testCaseSize);
-	assertLongEquals(1, testSuite->testCount);
+	ASSERT_LONG_EQUALS(10, testSuite->testCaseSize);
+	ASSERT_LONG_EQUALS(1, testSuite->testCount);
 	freeTestSuite(&testSuite);
 }
 
@@ -99,15 +99,15 @@ TEST(TestCaseTests, addTestCaseToSuiteForcingRealloc, Tests that a TestCase is c
 	assertNonNull(testSuite->testCases);
 	testSuite->testCaseSize = 1;
 	testSuite->testCount = 0;
-	assertLongEquals(1, testSuite->testCaseSize);
-	assertLongEquals(0, testSuite->testCount);
+	ASSERT_LONG_EQUALS(1, testSuite->testCaseSize);
+	ASSERT_LONG_EQUALS(0, testSuite->testCount);
 	addTestCase(testSuite, testCase);
-	assertLongEquals(1, testSuite->testCaseSize);
-	assertLongEquals(1, testSuite->testCount);
+	ASSERT_LONG_EQUALS(1, testSuite->testCaseSize);
+	ASSERT_LONG_EQUALS(1, testSuite->testCount);
 	const char *name2 = "testCase2";
 	TestCase *testCase2 = createTestCase(name2, suite, desc, sampleTestFunction);
 	addTestCase(testSuite, testCase2);
-	assertLongEquals(11, testSuite->testCaseSize);
-	assertLongEquals(2,  testSuite->testCount);
+	ASSERT_LONG_EQUALS(11, testSuite->testCaseSize);
+	ASSERT_LONG_EQUALS(2,  testSuite->testCount);
 	freeTestSuite(&testSuite);
 }

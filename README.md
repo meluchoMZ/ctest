@@ -7,6 +7,7 @@ A lightweight, zero-boilerplate C unit testing library.
 * **Auto-Registration:** Write tests without manually adding them to a `main()` function or maintaining test suites.
 * **Minimal Boilerplate:** Define tests using intuitive macros and let CTest handle execution and setup.
 * **Test functions:** Support for general test assertions and equality functions.
+* **Test failure file/line signaling:** The library points to the source file and line that failed in the test execution, with full stack trace.
 
 ## Installation
 
@@ -40,9 +41,11 @@ TEST(MathSuite, SubtractionTest, "Verifies basic subtraction operations") {
 Then, compile your test with 
 
 ```bash
-gcc -o test_example test_example.c -lctest
+gcc -o test_example test_example.c -lctest -rdynamic -g
 ./test_example
 ```
+
+`-lctest` to link CTest, `-rdynamic` and `-g` for stack trace printing.
 
 ## Documentation
 
@@ -50,4 +53,10 @@ Coming soon
 
 ## Screenshots
 
+Successful execution: 
+
 ![image](images/successful_screenshot.png)
+
+Failed execution:
+
+![image](images/failed_screenshot.png)

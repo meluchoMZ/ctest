@@ -64,7 +64,10 @@ void assert16BitIntEquals(uint16_t expected, uint16_t actual);
 /**
  * Tests that the given longs have the same value
  */
-void assertLongEquals(long expected, long actual);
+#define ASSERT_LONG_EQUALS(expected, actual) \
+	assertLongEquals(__FILE__, __LINE__, expected, actual)
+
+void assertLongEquals(const char *filePath, int line, long expected, long actual);
 
 /**
  * Tests that the given strings are similar
