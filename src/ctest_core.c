@@ -8,6 +8,7 @@
 #include <asm/termbits.h>
 #include <asm/termios.h>
 #include <errno.h>
+#include <execinfo.h>
 #include <signal.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -101,6 +102,7 @@ TestCase * createTestCase(const char *testName, const char *testSuite, const cha
 	testCase->name = testName;
 	testCase->suiteName = testSuite;
 	testCase->description = description;
+	testCase->expectedError = NULL;
 	testCase->execute = testFunction;
 	testCase->executed = false;
 	return testCase;
@@ -243,6 +245,19 @@ void freeTestSuite(TestSuite **testSuitePtr)
 	}
 }
 
+TestResult * getTestResultFromExpectedFailure(TestExecutionStatus status, const char *expected,
+		const char *output, int size)
+{
+	// if we do not expect failure or the failure does not match the expected, return test failure
+	// must treat empty string differently as will match any string
+	if (expected == NULL || strstr(output, expected) == NULL) {
+		return createTestResult(status, output, size);
+	} else {
+		// if it matches, return success
+		return createTestResult(SUCCESS, output, size);
+	}
+}
+
 /**
  * Executes a single test function and stores its result.
  * Each test function has to be executed inside a child process, 
@@ -252,7 +267,7 @@ void freeTestSuite(TestSuite **testSuitePtr)
  * a pipe so that the code executed in the test does not get
  * shown to the user
  */
-TestResult * executeTest(TestFunction testFunction)
+TestResult * executeTest(TestFunction testFunction, const char *expectedError)
 {
 	pid_t pid;
 	int status;
@@ -293,9 +308,9 @@ TestResult * executeTest(TestFunction testFunction)
 	bytesRead = read(pipefd[0], childProcessOutput, bufferSize - 1);
 	close(pipefd[0]);
 	if (WIFEXITED(status)) {
-	return WEXITSTATUS(status) == EXIT_SUCCESS ?
-	   createTestResult(SUCCESS, childProcessOutput, bytesRead) :
-	   createTestResult(FAILURE, childProcessOutput, bytesRead);
+		return WEXITSTATUS(status) == EXIT_SUCCESS ?
+		   createTestResult(SUCCESS, childProcessOutput, bytesRead) :
+		   getTestResultFromExpectedFailure(FAILURE, expectedError, childProcessOutput, bytesRead);
 	}
 	if (WIFSIGNALED(status)) {
 		if (WTERMSIG(status) == SIGSEGV) {
@@ -303,13 +318,6 @@ TestResult * executeTest(TestFunction testFunction)
 		}
 	}
 	return createTestResult(CRASH_OTHER, childProcessOutput, bytesRead);
-}
-
-/**
- * Prints in real time with progress bars test execution and status
- */
-void testPrinter(void)
-{
 }
 
 /**
@@ -419,7 +427,8 @@ void executeTests(TestStatus *testStatus)
 		for (long j = 0; j < testStatus->testSuites[i]->testCount; ++j) {
 			gettimeofday(&singleTestStart, NULL);
 			testStatus->testSuites[i]->testCases[j]->testResult =
-				executeTest(testStatus->testSuites[i]->testCases[j]->execute);
+				executeTest(testStatus->testSuites[i]->testCases[j]->execute,
+						testStatus->testSuites[i]->testCases[j]->expectedError);
 			gettimeofday(&singleTestFinish, NULL);
 			singleTestExecutionElapsedTime = computeElapsedTimeInMiliseconds(singleTestStart, singleTestFinish);
 			testStatus->testSuites[i]->testCases[j]->executed = true;
@@ -449,11 +458,51 @@ void executeTests(TestStatus *testStatus)
 	}
 }
 
+void printStackTrace(void)
+{
+	void *stackTraceBuffer[10];
+	int stackTraceBufferCount = 0;
+	char **stackTrace = NULL;
+	stackTraceBufferCount = backtrace(stackTraceBuffer, 10);
+	stackTrace = backtrace_symbols(stackTraceBuffer, stackTraceBufferCount);
+	if (stackTrace != NULL) {
+		fprintf(stderr, "Stack trace (%d):\n", stackTraceBufferCount - 2);
+		for (int i = 2; i < stackTraceBufferCount; ++i) {
+			// add padding to the stack trace to ease visualization
+			for (int j = 1; j < i; j++) {
+				fprintf(stderr, "   ");
+			}
+			fprintf(stderr, "[%d] %s\n", stackTraceBufferCount - i, stackTrace[i]);
+		}
+	}
+	free(stackTrace);
+}
+
+void handleSignal(int signal)
+{
+	const char *sigName = strsignal(signal);
+	switch (signal)
+	{
+		case SIGINT:
+			fprintf(stderr, "[CTEST] | Error | Received %s (SIGINT):\n", sigName);
+			break;
+		case SIGSEGV:
+			fprintf(stderr, "[CTEST] | Error | Received %s (SIGSEGV):\n", sigName);
+			break;
+		default:
+			fprintf(stderr, "[CTEST] | Error | Received signal '%s':\n", sigName);
+	};
+	printStackTrace();
+	_Exit(signal);
+}
+
 /**
  * Framework entrypoint.
  */
 int __attribute__((weak)) main(void)
 {
+	signal(SIGSEGV, handleSignal);
+	signal(SIGINT, handleSignal);
 	executeTests(testStatus);
 	return EXIT_SUCCESS;
 }

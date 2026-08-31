@@ -1,2 +1,3 @@
 libctest.so
 ctest_test
+ctest_test_fail

@@ -62,6 +62,7 @@ typedef struct TestCase
 	const char *name;
 	const char *suiteName;
 	const char *description;
+	const char *expectedError;
 	// function pointer to the test function the test executes
 	TestFunction execute;
 	bool executed;
@@ -135,13 +136,14 @@ bool addTestCase(TestSuite *testSuite, TestCase *testCase);
 bool addTestSuite(TestStatus *testStatus, TestSuite *testSuite);
 
 static void __attribute__((unused)) registerTestInSuite(TestSuite *testSuite, const char *testName,
-		const char *description, TestFunction testFunction)
+		const char *description, const char *expectedError, TestFunction testFunction)
 {
 	if (testSuite == NULL) {
 		fprintf(stderr, "[CTEST] | Error | cannot register test: testSuite is NULL\n");
 		return;
 	}
 	TestCase *testCase = createTestCase(testName, testSuite->name, description, testFunction);
+	testCase->expectedError = expectedError;
 	if (!addTestCase(testSuite, testCase)) {
 		freeTestCase(testCase);
 		testCase = NULL;

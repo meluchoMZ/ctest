@@ -21,14 +21,31 @@
 			if (!addTestSuite(testStatus, testSuite)) { \
 				freeTestSuite(&testSuite); \
 			} else { \
-				registerTestInSuite(testSuite, #name, #description, suite##_##name##_impl); \
+				registerTestInSuite(testSuite, #name, #description, NULL, suite##_##name##_impl); \
 			} \
 		} else { \
-			registerTestInSuite(testSuite, #name, #description, suite##_##name##_impl); \
+			registerTestInSuite(testSuite, #name, #description, NULL, suite##_##name##_impl); \
 		} \
 	} \
 	static void __attribute__((unused)) suite##_##name##_impl(void)
 
+#define TEST_EXPECT_FAIL(suite, name, description, expectedError) \
+	static void __attribute__((unused)) suite##_##name##_impl(void); \
+	static void __attribute__((constructor)) suite##_##name##_register(void) \
+		{ \
+		TestSuite *testSuite = findSuite(testStatus, #suite); \
+		if (testSuite == NULL) { \
+			TestSuite *testSuite = createTestSuite(#suite); \
+			if (!addTestSuite(testStatus, testSuite)) { \
+				freeTestSuite(&testSuite); \
+			} else { \
+				registerTestInSuite(testSuite, #name, #description, expectedError, suite##_##name##_impl); \
+			} \
+		} else { \
+			registerTestInSuite(testSuite, #name, #description, expectedError, suite##_##name##_impl); \
+		} \
+	} \
+	static void __attribute__((unused)) suite##_##name##_impl(void)
 // Public documented test functions
 
 /**
@@ -51,7 +68,7 @@ void assertFalse(const char *filePath, int line, bool condition);
  * Tests that the given pointer is `NULL`
  */
 #define ASSERT_NULL(pointer) \
-	assertFalse(__FILE__, __LINE__, pointer)
+	assertNull(__FILE__, __LINE__, pointer)
 
 void assertNull(const char *filePath, int line, void *pointer);
 
