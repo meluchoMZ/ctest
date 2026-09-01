@@ -502,16 +502,40 @@ void printStackTrace(void)
 	free(stackTrace);
 }
 
+/**
+ * Handles each signal raised.
+ * Only a handful of 'important' signals are treated specifically
+ * Most signals are treated in a default 'just print the error' manner
+ */
 void handleSignal(int signal)
 {
 	const char *sigName = strsignal(signal);
+	const char *errorTemplate = "[CTEST] | Error | Received %s (%s):\n";
 	switch (signal)
 	{
+		case SIGABRT:
+			fprintf(stderr, errorTemplate, sigName, "SIGABRT");
+			break;
+		case SIGALRM:
+			fprintf(stderr, errorTemplate, "timeout", "SIGALRM");
+			break;
+		case SIGBUS:
+			fprintf(stderr, errorTemplate, sigName, "SIGBUS");
+			break;
+		case SIGCHLD:
+			// pass in this case as each forked process raises this when the child process ends
+			return;
+		case SIGFPE:
+			fprintf(stderr, errorTemplate, sigName, "SIGFPE");
+			break;
+		case SIGILL:
+			fprintf(stderr, errorTemplate, sigName, "SIGILL");
+			break;
 		case SIGINT:
-			fprintf(stderr, "[CTEST] | Error | Received %s (SIGINT):\n", sigName);
+			fprintf(stderr, errorTemplate, sigName, "SIGINT");
 			break;
 		case SIGSEGV:
-			fprintf(stderr, "[CTEST] | Error | Received %s (SIGSEGV):\n", sigName);
+			fprintf(stderr, errorTemplate, sigName, "SIGSEGV");
 			break;
 		default:
 			fprintf(stderr, "[CTEST] | Error | Received signal '%s':\n", sigName);
@@ -521,12 +545,23 @@ void handleSignal(int signal)
 }
 
 /**
+ * Registers signal handlers for catching signals occurred during testing
+ * As in most architectures signals are ints in the range 1-31, the first
+ * 31 positive integers are registered in an optimistic approach
+ */
+void registerSignalHandlers()
+{
+	for (int i = 1; i < 32; ++i) {
+		signal(i, handleSignal);
+	}
+}
+
+/**
  * Framework entrypoint.
  */
 int __attribute__((weak)) main(void)
 {
-	signal(SIGSEGV, handleSignal);
-	signal(SIGINT, handleSignal);
+	registerSignalHandlers();
 	executeTests(testStatus);
 	return EXIT_SUCCESS;
 }
