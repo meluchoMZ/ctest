@@ -63,9 +63,10 @@ typedef struct TestCase
 	const char *suiteName;
 	const char *description;
 	const char *expectedError;
+	bool errorIsRegexp;
+	bool executed;
 	// function pointer to the test function the test executes
 	TestFunction execute;
-	bool executed;
 	TestResult *testResult;
 } TestCase;
 
@@ -136,7 +137,7 @@ bool addTestCase(TestSuite *testSuite, TestCase *testCase);
 bool addTestSuite(TestStatus *testStatus, TestSuite *testSuite);
 
 static void __attribute__((unused)) registerTestInSuite(TestSuite *testSuite, const char *testName,
-		const char *description, const char *expectedError, TestFunction testFunction)
+		const char *description, const char *expectedError, bool errorIsRegexp, TestFunction testFunction)
 {
 	if (testSuite == NULL) {
 		fprintf(stderr, "[CTEST] | Error | cannot register test: testSuite is NULL\n");
@@ -144,6 +145,7 @@ static void __attribute__((unused)) registerTestInSuite(TestSuite *testSuite, co
 	}
 	TestCase *testCase = createTestCase(testName, testSuite->name, description, testFunction);
 	testCase->expectedError = expectedError;
+	testCase->errorIsRegexp = errorIsRegexp;
 	if (!addTestCase(testSuite, testCase)) {
 		freeTestCase(testCase);
 		testCase = NULL;

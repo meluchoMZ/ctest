@@ -18,8 +18,8 @@ TEST_EXPECT_FAIL(AssertionsShouldFail, assertFalseFails, Tests that the `ASSERT_
 	ASSERT_FALSE(1==1);
 }
 
-TEST_EXPECT_FAIL(AssertionsShouldFail, assertNullFails, Tests that the `ASSERT_NULL` function works properly, 
-		"assertNull | actual: 0x7ffcae848664, expected: NULL")
+TEST_EXPECT_FAIL_REGEXP(AssertionsShouldFail, assertNullFails, Tests that the `ASSERT_NULL` function works properly,
+		".*assertNull | actual: .*, expected: NULL.*")
 {
 	int x = 1231;
 	int *ptr = &x;

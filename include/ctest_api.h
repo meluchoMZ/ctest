@@ -8,6 +8,7 @@
 
 #include "ctest_core.h"
 
+#include <stdbool.h>
 #include <stdint.h>
 
 // Macros for test declarations
@@ -21,10 +22,10 @@
 			if (!addTestSuite(testStatus, testSuite)) { \
 				freeTestSuite(&testSuite); \
 			} else { \
-				registerTestInSuite(testSuite, #name, #description, NULL, suite##_##name##_impl); \
+				registerTestInSuite(testSuite, #name, #description, NULL, false, suite##_##name##_impl); \
 			} \
 		} else { \
-			registerTestInSuite(testSuite, #name, #description, NULL, suite##_##name##_impl); \
+			registerTestInSuite(testSuite, #name, #description, NULL, false, suite##_##name##_impl); \
 		} \
 	} \
 	static void __attribute__((unused)) suite##_##name##_impl(void)
@@ -39,13 +40,33 @@
 			if (!addTestSuite(testStatus, testSuite)) { \
 				freeTestSuite(&testSuite); \
 			} else { \
-				registerTestInSuite(testSuite, #name, #description, expectedError, suite##_##name##_impl); \
+				registerTestInSuite(testSuite, #name, #description, expectedError, false, suite##_##name##_impl); \
 			} \
 		} else { \
-			registerTestInSuite(testSuite, #name, #description, expectedError, suite##_##name##_impl); \
+			registerTestInSuite(testSuite, #name, #description, expectedError, false, suite##_##name##_impl); \
 		} \
 	} \
 	static void __attribute__((unused)) suite##_##name##_impl(void)
+
+#define TEST_EXPECT_FAIL_REGEXP(suite, name, description, expectedError) \
+	static void __attribute__((unused)) suite##_##name##_impl(void); \
+	static void __attribute__((constructor)) suite##_##name##_register(void) \
+		{ \
+		TestSuite *testSuite = findSuite(testStatus, #suite); \
+		if (testSuite == NULL) { \
+			TestSuite *testSuite = createTestSuite(#suite); \
+			if (!addTestSuite(testStatus, testSuite)) { \
+				freeTestSuite(&testSuite); \
+			} else { \
+				registerTestInSuite(testSuite, #name, #description, expectedError, true, suite##_##name##_impl); \
+			} \
+		} else { \
+			registerTestInSuite(testSuite, #name, #description, expectedError, true, suite##_##name##_impl); \
+		} \
+	} \
+	static void __attribute__((unused)) suite##_##name##_impl(void)
+
+
 // Public documented test functions
 
 /**

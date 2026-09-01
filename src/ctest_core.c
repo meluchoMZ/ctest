@@ -9,6 +9,7 @@
 #include <asm/termios.h>
 #include <errno.h>
 #include <execinfo.h>
+#include <regex.h>
 #include <signal.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -246,11 +247,33 @@ void freeTestSuite(TestSuite **testSuitePtr)
 }
 
 TestResult * getTestResultFromExpectedFailure(TestExecutionStatus status, const char *expected,
-		const char *output, int size)
+		const char *output, int size, bool isRegexp)
 {
+	const char *regularizedExpected = expected;
+	regex_t regexp;
+	if (isRegexp) {
+		if (regcomp(&regexp, expected, 0) != 0) {
+			int bufferSize = size + 100;
+			char buffer[size + 100];
+			snprintf(buffer, bufferSize, "[CTEST] | Error | Unable to create regular expression for: '%s'\n", expected);
+			regfree(&regexp);
+			return createTestResult(CRASH_OTHER, buffer, bufferSize);
+		} else {
+			if (regexec(&regexp, output, 0, NULL, 0) == 0) {
+				regfree(&regexp);
+				return createTestResult(SUCCESS, output, size);
+			} else {
+				int bufferSize = size + 100;
+				char buffer[size + 100];
+				snprintf(buffer, bufferSize, "[CTEST] | Error | regexp does not match output | regexp: '%s', output: '%s'\n", expected, output);
+				regfree(&regexp);
+				return createTestResult(FAILURE, buffer, bufferSize);
+			}
+		}
+	}
 	// if we do not expect failure or the failure does not match the expected, return test failure
 	// must treat empty string differently as will match any string
-	if (expected == NULL || strstr(output, expected) == NULL) {
+	if (expected == NULL || strstr(output, regularizedExpected) == NULL) {
 		return createTestResult(status, output, size);
 	} else {
 		// if it matches, return success
@@ -267,7 +290,7 @@ TestResult * getTestResultFromExpectedFailure(TestExecutionStatus status, const 
  * a pipe so that the code executed in the test does not get
  * shown to the user
  */
-TestResult * executeTest(TestFunction testFunction, const char *expectedError)
+TestResult * executeTest(TestFunction testFunction, const char *expectedError, bool regexp)
 {
 	pid_t pid;
 	int status;
@@ -310,14 +333,14 @@ TestResult * executeTest(TestFunction testFunction, const char *expectedError)
 	if (WIFEXITED(status)) {
 		return WEXITSTATUS(status) == EXIT_SUCCESS ?
 		   createTestResult(SUCCESS, childProcessOutput, bytesRead) :
-		   getTestResultFromExpectedFailure(FAILURE, expectedError, childProcessOutput, bytesRead);
+		   getTestResultFromExpectedFailure(FAILURE, expectedError, childProcessOutput, bytesRead, regexp);
 	}
 	if (WIFSIGNALED(status)) {
 		if (WTERMSIG(status) == SIGSEGV) {
-			return createTestResult(CRASH_SEGV, childProcessOutput, bytesRead);
+			return getTestResultFromExpectedFailure(CRASH_SEGV, expectedError, childProcessOutput, bytesRead, regexp);
 		}
 	}
-	return createTestResult(CRASH_OTHER, childProcessOutput, bytesRead);
+	return getTestResultFromExpectedFailure(CRASH_OTHER, expectedError, childProcessOutput, bytesRead, regexp);
 }
 
 /**
@@ -428,7 +451,8 @@ void executeTests(TestStatus *testStatus)
 			gettimeofday(&singleTestStart, NULL);
 			testStatus->testSuites[i]->testCases[j]->testResult =
 				executeTest(testStatus->testSuites[i]->testCases[j]->execute,
-						testStatus->testSuites[i]->testCases[j]->expectedError);
+						testStatus->testSuites[i]->testCases[j]->expectedError,
+						testStatus->testSuites[i]->testCases[j]->errorIsRegexp);
 			gettimeofday(&singleTestFinish, NULL);
 			singleTestExecutionElapsedTime = computeElapsedTimeInMiliseconds(singleTestStart, singleTestFinish);
 			testStatus->testSuites[i]->testCases[j]->executed = true;
