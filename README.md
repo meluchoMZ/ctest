@@ -47,6 +47,14 @@ gcc -o test_example test_example.c -lctest -rdynamic -g
 
 `-lctest` to link CTest, `-rdynamic` and `-g` for stack trace printing.
 
+## Usage
+Executing the compiled executable will execute all compiled tests.
+
+You can filter for test suite with `-s`(`--suite`) <suiteName> option.
+
+You can also filter by a test case with `-c`(`--case`) <testCaseName> option.
+
+
 ## Documentation
 
 Coming soon

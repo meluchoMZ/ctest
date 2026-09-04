@@ -9,6 +9,7 @@
 #include <asm/termios.h>
 #include <errno.h>
 #include <execinfo.h>
+#include <getopt.h>
 #include <regex.h>
 #include <signal.h>
 #include <stdbool.h>
@@ -106,13 +107,16 @@ TestCase * createTestCase(const char *testName, const char *testSuite, const cha
 	testCase->expectedError = NULL;
 	testCase->execute = testFunction;
 	testCase->executed = false;
+	testCase->testResult = NULL;
 	return testCase;
 }
 
 void freeTestCase(TestCase *testCase)
 {
 	if (testCase != NULL) {
-		freeTestResult(&testCase->testResult);
+		if (testCase->testResult != NULL) {
+			freeTestResult(&testCase->testResult);
+		}
 		free(testCase);
 		testCase = NULL;
 	}
@@ -427,7 +431,7 @@ double computeElapsedTimeInMiliseconds(struct timeval start, struct timeval fini
 /**
  * Executes all the tests registered in a TestStatus element
  */
-void executeTests(TestStatus *testStatus)
+void executeTests(TestStatus *testStatus, const char *suiteName, const char *testName)
 {
 	struct timeval tInit, tFinish, singleTestStart, singleTestFinish;
 	double elapsedTime = 0, singleTestExecutionElapsedTime = 0;
@@ -437,17 +441,22 @@ void executeTests(TestStatus *testStatus)
 	long suiteSuccessfulTests;
 	long suiteFailedTests;
 	int terminalWidth = getTerminalWidth();
-	printCTestLogo();
 	gettimeofday(&tInit, NULL);
 	for (long i = 0; i < testStatus->suiteCount; ++i) {
 		totalTests += testStatus->testSuites[i]->testCount;
 	}
 	printf("CTest v%s (%ld suites, %ld tests) \n\n", CTEST_VERSION, testStatus->suiteCount, totalTests);
 	for (long i = 0; i < testStatus->suiteCount; ++i) {
+		if (suiteName != NULL && strcmp(suiteName, testStatus->testSuites[i]->name) != 0) {
+			continue;
+		}
 		printSuiteName(testStatus->testSuites[i]->name, terminalWidth);
 		suiteFailedTests = 0;
 		suiteSuccessfulTests = 0;
 		for (long j = 0; j < testStatus->testSuites[i]->testCount; ++j) {
+			if (testName != NULL && strcmp(testName, testStatus->testSuites[i]->testCases[j]->name) != 0) {
+				continue;
+			}
 			gettimeofday(&singleTestStart, NULL);
 			testStatus->testSuites[i]->testCases[j]->testResult =
 				executeTest(testStatus->testSuites[i]->testCases[j]->execute,
@@ -556,12 +565,102 @@ void registerSignalHandlers()
 	}
 }
 
+typedef struct InputParameters
+{
+	bool invalidOption;
+	bool version;
+	bool help;
+	char *testSuite;
+	char *testCase;
+} InputParameters;
+
+void processInputParameters(InputParameters *inputParameters, int argc, char **argv)
+{
+	const char *shortOptions = "c:hs:v";
+	static struct option longOptions[] =
+	{
+		{"case", 1, NULL, 'c'},
+		{"help", 0, NULL, 'h'},
+		{"suite", 1, NULL, 's'},
+		{"version", 0, NULL, 'v'}
+	};
+	int optionIndex = 0;
+	inputParameters->invalidOption = false;
+	inputParameters->version = false;
+	inputParameters->help = false;
+	inputParameters->testSuite = NULL;
+	inputParameters->testCase = NULL;
+	int c = getopt_long(argc, argv, shortOptions, longOptions, &optionIndex);
+
+	if (c == -1) {
+		return;
+	}
+	switch (c) {
+		case 'h':
+			inputParameters->help = true;
+			break;
+		case 'c':
+			inputParameters->testCase = optarg;
+			// getopt does only return the first occurrency, we can get the others using
+			// the optind variable
+			if (optind + 1 < argc) {
+				if (strcmp("-s", argv[optind]) == 0 || strcmp("--suite", argv[optind]) == 0) {
+					inputParameters->testSuite = argv[optind + 1];
+				}
+			}
+			break;
+		case 's':
+			inputParameters->testSuite = optarg;
+			// same as in the previous block
+			if (optind + 1 < argc) {
+				if (strcmp("-c", argv[optind]) == 0 || strcmp("--case", argv[optind]) == 0) {
+					inputParameters->testCase = argv[optind + 1];
+				}
+			}
+			break;
+		case 'v':
+			inputParameters->version = true;
+			break;
+		default:
+			inputParameters->invalidOption = true;
+	}
+}
+
+void printUsage(void)
+{
+	printf("Usage: <ctest_executable> [OPTIONS]\n\n");
+    printf("Options:\n");
+    printf("  -h, --help                            Show this help message and exit\n");
+    printf("  -v, --version                         Show program version\n");
+    printf("  -s, --suite <name>                    Execute test suite <param>\n");
+    printf("  -s, --suite <name> -c, --case <name>  Execute test case <param2> from suite <param>\n");
+}
+
 /**
  * Framework entrypoint.
  */
-int __attribute__((weak)) main(void)
+int __attribute__((weak)) main(int argc, char **argv)
 {
+	InputParameters inputParameters;
+	processInputParameters(&inputParameters, argc, argv);
+	if (inputParameters.invalidOption) {
+		printUsage();
+		return EXIT_FAILURE;
+	}
+	if (inputParameters.help) {
+		printUsage();
+		return EXIT_SUCCESS;
+	}
+	if (inputParameters.version) {
+		printCTestLogo();
+		return EXIT_SUCCESS;
+	}
+	if (inputParameters.testCase != NULL && inputParameters.testSuite == NULL) {
+		fprintf(stderr, "[CTEST] | Error | test case filtering must be acompanied of suite filtering\n");
+		printUsage();
+		return EXIT_FAILURE;
+	}
 	registerSignalHandlers();
-	executeTests(testStatus);
+	executeTests(testStatus, inputParameters.testSuite, inputParameters.testCase);
 	return EXIT_SUCCESS;
 }
