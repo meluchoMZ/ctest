@@ -5,8 +5,6 @@
 
 #include "ctest_core.h"
 
-#include <asm/termbits.h>
-#include <asm/termios.h>
 #include <errno.h>
 #include <execinfo.h>
 #include <getopt.h>
@@ -20,6 +18,7 @@
 #include <sys/ioctl.h>
 #include <sys/time.h>
 #include <sys/wait.h>
+#include <termios.h>
 #include <unistd.h>
 
 TestStatus *testStatus = NULL;

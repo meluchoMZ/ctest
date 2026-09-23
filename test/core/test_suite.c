@@ -23,6 +23,7 @@ TEST(TestSuitesTests, createTestSuite, Tests the creation of a TestSuite element
 TEST(TestSuitesTests, freeTestSuite, Tests the liberation of a TestSuite element)
 {
 	TestSuite *testSuite = malloc(sizeof(TestSuite));
+	testSuite->testCount = 0;
 	ASSERT_NON_NULL(testSuite);
 	testSuite->testCases = malloc(sizeof(TestCase));
 	ASSERT_NON_NULL(testSuite->testCases);

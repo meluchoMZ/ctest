@@ -27,6 +27,11 @@ TEST(Assertions, assertNonNull, Tests that the `ASSERT_NON_NULL` function works 
 	ASSERT_NON_NULL(&x);
 }
 
+TEST(Assertions, assertPointerEquals, "Tests that the 'ASSERT_POINTER_EQUALS` function works properly")
+{
+	int x[5] = {1, 2, 3, 4, 5};
+	ASSERT_POINTER_EQUALS((void *) (x + 3), (void *) &x[3]);
+}
 TEST(Assertions, assert8BitUnsignedEquals, Tests equals on 8 bit unsigned integers)
 {
 	uint8_t expected = 8;

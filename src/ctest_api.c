@@ -73,6 +73,15 @@ void assertNonNull(const char *filePath, int line, void *pointer)
 	}
 }
 
+void assertPointerEquals(const char *filePath, int line, void *expected, void *actual)
+{
+	if (expected != actual) {
+		char errorBuffer[64];
+		snprintf(errorBuffer, 64, "actual: %p, expected: %p", actual, expected);
+		endTestWithError(filePath, line, __func__, errorBuffer);
+	}
+}
+
 void assert8BitUIntEquals(const char *filePath, int line, uint8_t expected, uint8_t actual)
 {
 	if (expected != actual) {

@@ -32,6 +32,11 @@ TEST_EXPECT_FAIL(AssertionsShouldFail, assertNonNullFails, Tests that the `ASSER
 	ASSERT_NON_NULL(NULL);
 }
 
+TEST_EXPECT_FAIL_REGEXP(AssertionsShouldFail, assertPointerFails, "Tests that the 'ASSERT_POINTER_EQUALS' works properly", ".*assertPointerEquals | actual: .*, expected: .*")
+{
+	int x[5] = {1, 2, 3, 4, 5};
+	ASSERT_POINTER_EQUALS((void *) (x + 3), (void *) &x[2]);
+}
 TEST_EXPECT_FAIL(AssertionsShouldFail, assert8BitUnsignedEqualsFails, Tests equals on 8 bit unsigned integers, 
 		"assert8BitUIntEquals | actual: 9, expected: 8")
 {

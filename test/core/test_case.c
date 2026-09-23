@@ -13,7 +13,7 @@ void sampleTestFunction(void)
 	return;
 }
 
-void assertPointerEquals(TestFunction expected, TestFunction actual)
+void assertFunctionPointerEquals(TestFunction expected, TestFunction actual)
 {
 	if (!(expected == actual)) {
 		_Exit(EXIT_FAILURE);
@@ -30,7 +30,7 @@ TEST(TestCaseTests, createTestCase, Tests that a TestCase is created correctly)
 	ASSERT_STRING_EQUALS(name, testCase->name);
 	ASSERT_STRING_EQUALS(suite, testCase->suiteName);
 	ASSERT_STRING_EQUALS(desc, testCase->description);
-	assertPointerEquals(sampleTestFunction, testCase->execute);
+	assertFunctionPointerEquals(sampleTestFunction, testCase->execute);
 	free(testCase);
 }
 
@@ -44,7 +44,7 @@ TEST(TestCaseTests, freeTestCase, Tests that a TestCase is freed correctly)
 	ASSERT_STRING_EQUALS(name, testCase->name);
 	ASSERT_STRING_EQUALS(suite, testCase->suiteName);
 	ASSERT_STRING_EQUALS(desc, testCase->description);
-	assertPointerEquals(sampleTestFunction, testCase->execute);
+	assertFunctionPointerEquals(sampleTestFunction, testCase->execute);
 	freeTestCase(testCase);
 }
 

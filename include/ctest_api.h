@@ -102,6 +102,15 @@ void assertNull(const char *filePath, int line, void *pointer);
 void assertNonNull(const char *filePath, int line, void *pointer);
 
 /**
+ * Tests that the two pointers are equal.
+ * It only compares raw pointer values, no type is taken into account
+ */
+#define ASSERT_POINTER_EQUALS(expected, actual) \
+	assertPointerEquals(__FILE__, __LINE__, expected, actual)
+
+void assertPointerEquals(const char *filePath, int line, void *expected, void *actual);
+
+/**
  * Tests that the given 8 bit unsigned integers have the same value
  */
 #define ASSERT_8_BIT_UNSIGNED_INT_EQUALS(expected, actual) \

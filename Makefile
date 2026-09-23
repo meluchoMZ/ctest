@@ -13,7 +13,7 @@ OBJECTS = ctest_core.o ctest_api.o
 
 CC = gcc
 
-CFLAGS = -c -fPIC -Wall -Wextra -Werror -Wpedantic -fsanitize=address -g -rdynamic -Iinclude -Isrc
+CFLAGS = -c -fPIC -Wall -Wextra -Werror -Wpedantic -g -rdynamic -Iinclude -Isrc
 TEST_CFLAGS = -Wall -Wextra -Werror -Wpedantic -g -rdynamic -Iinclude -Isrc
 
 LDFLAGS = -shared
@@ -24,9 +24,9 @@ LIB_DIR ?= $(PREFIX)/lib64
 
 $(TARGET): $(SRC)
 	@echo "Compiling $(SRC)..."
-	$(CC) $(CFLAGS) $(SRC)
+	$(CC) $(CFLAGS) -fsanitize=address $(SRC)
 	@echo "Linking shared library $(TARGET)..."
-	$(CC) $(LDFLAGS) -o $(TARGET) $(OBJECTS) 
+	$(CC) $(LDFLAGS) -lasan -o $(TARGET) $(OBJECTS)
 	rm -f *.o
 	@echo "Compilation successful. Library $(TARGET) created"
 
