@@ -44,8 +44,19 @@ static void __attribute__((constructor(101))) initTests(void)
 // After test, free all the test memory usage
 static void __attribute__((destructor)) finalizeTests(void)
 {
+	bool executionStatus = true;
 	if (testStatus != NULL) {
 		for (long i = testStatus->suiteCount - 1; i >= 0; --i) {
+			// TODO refactor this to compute during the test execution phase, now as a "fas fix" it will work
+			if (executionStatus) {
+				for (long j = 0; j < testStatus->testSuites[i]->testCount; ++j) {
+					if (testStatus->testSuites[i]->testCases[j]->executed &&
+							(testStatus->testSuites[i]->testCases[j]->testResult->status != SUCCESS)) {
+							executionStatus = false;
+							break;
+					}
+				}
+			}
 			// freeTestSuite do already frees its test cases
 			freeTestSuite(&testStatus->testSuites[i]);
 		}
@@ -54,6 +65,7 @@ static void __attribute__((destructor)) finalizeTests(void)
 		free(testStatus);
 		testStatus = NULL;
 	}
+	_Exit(executionStatus ? EXIT_SUCCESS : EXIT_FAILURE);
 }	
 
 TestResult * createTestResult(TestExecutionStatus status, const char *logs, size_t logSize)
