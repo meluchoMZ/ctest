@@ -80,6 +80,8 @@ typedef struct TestSuite
 	TestCase **testCases;
 	long testCaseSize;
 	long testCount;
+	long successfulTests;
+	long failedTests;
 } TestSuite;
 
 /**
@@ -91,6 +93,8 @@ typedef struct TestStatus
 	TestSuite **testSuites;
 	long testSuitesSize;
 	long suiteCount;
+	long successfulTests;
+	long failedTests;
 } TestStatus;
 
 // global test state

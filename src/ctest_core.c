@@ -39,24 +39,16 @@ static void __attribute__((constructor(101))) initTests(void)
 	}
 	testStatus->testSuitesSize = 10;
 	testStatus->suiteCount = 0;
+	testStatus->successfulTests = 0;
+	testStatus->failedTests = 0;
 }
 
 // After test, free all the test memory usage
 static void __attribute__((destructor)) finalizeTests(void)
 {
-	bool executionStatus = true;
+	bool successfulExecution = testStatus->failedTests == 0;
 	if (testStatus != NULL) {
 		for (long i = testStatus->suiteCount - 1; i >= 0; --i) {
-			// TODO refactor this to compute during the test execution phase, now as a "fas fix" it will work
-			if (executionStatus) {
-				for (long j = 0; j < testStatus->testSuites[i]->testCount; ++j) {
-					if (testStatus->testSuites[i]->testCases[j]->executed &&
-							(testStatus->testSuites[i]->testCases[j]->testResult->status != SUCCESS)) {
-							executionStatus = false;
-							break;
-					}
-				}
-			}
 			// freeTestSuite do already frees its test cases
 			freeTestSuite(&testStatus->testSuites[i]);
 		}
@@ -65,7 +57,7 @@ static void __attribute__((destructor)) finalizeTests(void)
 		free(testStatus);
 		testStatus = NULL;
 	}
-	_Exit(executionStatus ? EXIT_SUCCESS : EXIT_FAILURE);
+	_Exit(successfulExecution ? EXIT_SUCCESS : EXIT_FAILURE);
 }	
 
 TestResult * createTestResult(TestExecutionStatus status, const char *logs, size_t logSize)
@@ -195,6 +187,8 @@ TestSuite * createTestSuite(const char *name)
 	}
 	testSuite->testCaseSize = 10;
 	testSuite->testCount = 0;
+	testSuite->successfulTests = 0;
+	testSuite->failedTests = 0;
 	return testSuite;
 }
 
@@ -432,9 +426,7 @@ double computeElapsedTimeInSeconds(struct timeval start, struct timeval finish)
 		((finish.tv_usec - start.tv_usec) / (double) 1000000);
 	return elapsedTime;
 }
-
-double computeElapsedTimeInMiliseconds(struct timeval start, struct timeval finish)
-{
+double computeElapsedTimeInMiliseconds(struct timeval start, struct timeval finish) {
 	double elapsedTime = ((finish.tv_sec - start.tv_sec) * (double) 1000) +
 		((finish.tv_usec - start.tv_usec) / (double) 1000);
 	return elapsedTime;
@@ -448,10 +440,6 @@ void executeTests(TestStatus *testStatus, const char *suiteName, const char *tes
 	struct timeval tInit, tFinish, singleTestStart, singleTestFinish;
 	double elapsedTime = 0, singleTestExecutionElapsedTime = 0;
 	long totalTests = 0;
-	long successfulTests = 0;
-	long failedTests = 0;
-	long suiteSuccessfulTests;
-	long suiteFailedTests;
 	int terminalWidth = getTerminalWidth();
 	gettimeofday(&tInit, NULL);
 	for (long i = 0; i < testStatus->suiteCount; ++i) {
@@ -463,8 +451,6 @@ void executeTests(TestStatus *testStatus, const char *suiteName, const char *tes
 			continue;
 		}
 		printSuiteName(testStatus->testSuites[i]->name, terminalWidth);
-		suiteFailedTests = 0;
-		suiteSuccessfulTests = 0;
 		for (long j = 0; j < testStatus->testSuites[i]->testCount; ++j) {
 			if (testName != NULL && strcmp(testName, testStatus->testSuites[i]->testCases[j]->name) != 0) {
 				continue;
@@ -477,14 +463,19 @@ void executeTests(TestStatus *testStatus, const char *suiteName, const char *tes
 			gettimeofday(&singleTestFinish, NULL);
 			singleTestExecutionElapsedTime = computeElapsedTimeInMiliseconds(singleTestStart, singleTestFinish);
 			testStatus->testSuites[i]->testCases[j]->executed = true;
-			testStatus->testSuites[i]->testCases[j]->testResult->status == SUCCESS ?
-				suiteSuccessfulTests++ : suiteFailedTests++;
+			testStatus->testSuites[i]->testCases[j]->testResult->status ==
+				SUCCESS ?
+				testStatus->testSuites[i]->successfulTests++ :
+				testStatus->testSuites[i]->failedTests++;
 			printTestResult(testStatus->testSuites[i]->testCases[j]->name, terminalWidth,
 					singleTestExecutionElapsedTime, testStatus->testSuites[i]->testCases[j]->testResult);
 		}
-		successfulTests += suiteSuccessfulTests;
-		failedTests += suiteFailedTests;
-		printf("    PASS: [%ld/%ld]\n\n", suiteSuccessfulTests, suiteSuccessfulTests + suiteFailedTests);
+		testStatus->successfulTests += testStatus->testSuites[i]->successfulTests;
+		testStatus->failedTests += testStatus->testSuites[i]->failedTests;
+		printf("    PASS: [%ld/%ld]\n\n",
+				testStatus->testSuites[i]->successfulTests,
+				testStatus->testSuites[i]->successfulTests +
+				testStatus->testSuites[i]->failedTests);
 	}
 	gettimeofday(&tFinish, NULL);
 	elapsedTime = computeElapsedTimeInSeconds(tInit, tFinish);
@@ -492,11 +483,13 @@ void executeTests(TestStatus *testStatus, const char *suiteName, const char *tes
 		putchar('-');
 	}
 	if (elapsedTime < 1) {
-		printf("\n\nRESULTS: " GREEN "%ld" RESET " passed, " RED "%ld" RESET " failed in %.4f ms\n", successfulTests, failedTests, elapsedTime * (double) 1000);
+		printf("\n\nRESULTS: " GREEN "%ld" RESET " passed, " RED "%ld" RESET " failed in %.4f ms\n",
+				testStatus->successfulTests, testStatus->failedTests, elapsedTime * (double) 1000);
 	} else {
-		printf("\n\nRESULTS: " GREEN "%ld" RESET " passed, " RED "%ld" RESET " failed in %.4f s\n", successfulTests, failedTests, elapsedTime);
+		printf("\n\nRESULTS: " GREEN "%ld" RESET " passed, " RED "%ld" RESET " failed in %.4f s\n",
+				testStatus->successfulTests, testStatus->failedTests, elapsedTime);
 	}
-	if (failedTests == 0) {
+	if (testStatus->failedTests == 0) {
 		printf("STATUS:  " GREEN "SUCCESS" RESET "\n");
 	} else {
 		printf("STATUS:  " RED "FAILURE" RESET "\n");

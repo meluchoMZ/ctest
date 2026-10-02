@@ -14,6 +14,8 @@ TEST(TestSuitesTests, createTestSuite, Tests the creation of a TestSuite element
 	ASSERT_NON_NULL(actual->testCases);
 	ASSERT_LONG_EQUALS(10, actual->testCaseSize);
 	ASSERT_LONG_EQUALS(0, actual->testCount);
+	ASSERT_LONG_EQUALS(0, actual->successfulTests);
+	ASSERT_LONG_EQUALS(0, actual->failedTests);
 	free(actual->testCases);
 	actual->testCases = NULL;
 	free(actual);
