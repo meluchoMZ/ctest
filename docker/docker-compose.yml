@@ -1,0 +1,58 @@
+services:
+
+# FEDORA
+  ctest-base-fedora:
+    build:
+      context: ../
+      dockerfile: docker/dockerfiles/fedora.Dockerfile
+    image: ctest-base:fedora
+
+  fedora-compile:
+    image: ctest-base:fedora
+    userns_mode: "keep-id"
+    volumes:
+      - ../.:/home/fedora/ctest
+    entrypoint: ["/bin/bash", "/home/fedora/ctest/docker/scripts/compile.sh"]
+
+  fedora-test:
+    image: ctest-base:fedora
+    userns_mode: "keep-id"
+    volumes:
+      - ../.:/home/fedora/ctest
+    entrypoint: ["/bin/bash", "/home/fedora/ctest/docker/scripts/test.sh"]
+
+  fedora-install:
+    image: ctest-base:fedora
+    user: root
+    volumes:
+      - ../.:/home/fedora/ctest
+    entrypoint: ["/bin/bash", "/home/fedora/ctest/docker/scripts/install.sh"]
+
+# UBUNTU
+  ctest-base-ubuntu:
+    build:
+      context: ../
+      dockerfile: docker/dockerfiles/ubuntu.Dockerfile
+    image: ctest-base:ubuntu
+
+  ubuntu-compile:
+    image: ctest-base:ubuntu
+    userns_mode: "keep-id"
+    volumes:
+      - ../.:/home/ubuntu/ctest
+    entrypoint: ["/bin/bash", "/home/ubuntu/ctest/docker/scripts/compile.sh"]
+
+  ubuntu-test:
+    image: ctest-base:ubuntu
+    userns_mode: "keep-id"
+    volumes:
+      - ../.:/home/ubuntu/ctest
+    entrypoint: ["/bin/bash", "/home/ubuntu/ctest/docker/scripts/test.sh"]
+
+  ubuntu-install:
+    image: ctest-base:ubuntu
+    user: root
+    volumes:
+      - ../.:/home/ubuntu/ctest
+    entrypoint: ["/bin/bash", "/home/ubuntu/ctest/docker/scripts/install.sh"]
+

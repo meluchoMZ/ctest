@@ -382,7 +382,8 @@ int getTerminalWidth()
 	struct winsize terminalWindowSize;
 	if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &terminalWindowSize) != 0) {
 		fprintf(stderr, "[CTEST] | Error | could not get terminal window size: %s\n", strerror(errno));
-		return -1;
+		fprintf(stderr, "[CTEST] | Error | defaulting to 80 columns\n");
+		return 80;
 	}
 	return terminalWindowSize.ws_col;
 }
@@ -500,6 +501,7 @@ void executeTests(TestStatus *testStatus, const char *suiteName, const char *tes
 	} else {
 		printf("STATUS:  " RED "FAILURE" RESET "\n");
 	}
+	fflush(stdout);
 }
 
 void printStackTrace(void)

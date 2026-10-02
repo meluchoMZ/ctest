@@ -24,9 +24,9 @@ LIB_DIR ?= $(PREFIX)/lib64
 
 $(TARGET): $(SRC)
 	@echo "Compiling $(SRC)..."
-	$(CC) $(CFLAGS) -fsanitize=address $(SRC)
+	$(CC) $(CFLAGS) $(SRC)
 	@echo "Linking shared library $(TARGET)..."
-	$(CC) $(LDFLAGS) -lasan -o $(TARGET) $(OBJECTS)
+	$(CC) $(LDFLAGS) -o $(TARGET) $(OBJECTS)
 	rm -f *.o
 	@echo "Compilation successful. Library $(TARGET) created"
 
