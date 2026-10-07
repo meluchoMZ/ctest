@@ -6,6 +6,7 @@
 #include "../include/ctest_api.h"
 
 #include <execinfo.h>
+#include <inttypes.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -113,7 +114,7 @@ void assert64BitUIntEquals(const char *filePath, int line, uint64_t expected, ui
 {
 	if (expected != actual) {
 		char errorBuffer[64];
-		snprintf(errorBuffer, 64, "actual: %ld, expected: %ld", actual, expected);
+		snprintf(errorBuffer, 64, "actual: %" PRIu64 ", expected: %" PRIu64, actual, expected);
 		endTestWithError(filePath, line, __func__, errorBuffer);
 	}
 }
@@ -149,7 +150,7 @@ void assert64BitIntEquals(const char *filePath, int line, int64_t expected, int6
 {
 	if (expected != actual) {
 		char errorBuffer[64];
-		snprintf(errorBuffer, 64, "actual: %ld, expected: %ld", actual, expected);
+		snprintf(errorBuffer, 64, "actual: %" PRIi64 ", expected: %" PRIi64, actual, expected);
 		endTestWithError(filePath, line, __func__, errorBuffer);
 	}
 }
