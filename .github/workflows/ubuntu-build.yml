@@ -1,0 +1,37 @@
+name: arm-32-bit
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  build-and-test:
+    runs-on: [self-hosted, ARM]
+
+    steps:
+      - name: Create temporary workspace directory
+        run: |
+          EXEC_DIR="tmp_${{ github.run_id }}_${{ github.run_attempt }}"
+          echo "EXEC_DIR=${EXEC_DIR}" >> $GITHUB_ENV
+          mkdir -p "${EXEC_DIR}"
+
+      - name: Checkout pull request code
+        uses: actions/checkout@v4
+        with:
+          path: ${{ env.EXEC_DIR }}
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Run Docker build (ubuntu)
+        run: |
+          cd "${{ env.EXEC_DIR }}"
+          docker compose -f docker/docker-compose.yml up --build --exit-code-from ubuntu-compile ubuntu-compile
+
+      - name: Clean up temporary directory
+        if: always()
+        run: |
+          if [ -d "${{ env.EXEC_DIR }}" ]; then
+            cd "${{ env.EXEC_DIR }}"
+            docker compose -f docker/docker-compose.yml down --volumes --remove-orphans || true
+            cd ..
+            rm -rf "${{ env.EXEC_DIR }}"
+          fi
