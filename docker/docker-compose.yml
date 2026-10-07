@@ -9,6 +9,8 @@ services:
 
   fedora-compile:
     image: ctest-base:fedora
+    depends_on:
+      - ctest-base-fedora
     userns_mode: "keep-id"
     volumes:
       - ../.:/home/fedora/ctest
@@ -16,6 +18,7 @@ services:
 
   fedora-test:
     image: ctest-base:fedora
+      - ctest-base-fedora
     userns_mode: "keep-id"
     volumes:
       - ../.:/home/fedora/ctest
@@ -23,6 +26,7 @@ services:
 
   fedora-install:
     image: ctest-base:fedora
+      - ctest-base-fedora
     user: root
     volumes:
       - ../.:/home/fedora/ctest
@@ -37,6 +41,8 @@ services:
 
   ubuntu-compile:
     image: ctest-base:ubuntu
+    depends_on:
+      - ctest-base-ubuntu
     userns_mode: "keep-id"
     volumes:
       - ../.:/home/ubuntu/ctest
@@ -44,6 +50,8 @@ services:
 
   ubuntu-test:
     image: ctest-base:ubuntu
+    depends_on:
+      - ctest-base-ubuntu
     userns_mode: "keep-id"
     volumes:
       - ../.:/home/ubuntu/ctest
@@ -51,6 +59,8 @@ services:
 
   ubuntu-install:
     image: ctest-base:ubuntu
+    depends_on:
+      - ctest-base-ubuntu
     user: root
     volumes:
       - ../.:/home/ubuntu/ctest
