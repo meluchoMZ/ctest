@@ -18,6 +18,7 @@ services:
 
   fedora-test:
     image: ctest-base:fedora
+    depends_on:
       - ctest-base-fedora
     userns_mode: "keep-id"
     volumes:
@@ -26,6 +27,7 @@ services:
 
   fedora-install:
     image: ctest-base:fedora
+    depends_on:
       - ctest-base-fedora
     user: root
     volumes:
