@@ -11,7 +11,6 @@ services:
     image: ctest-base:fedora
     depends_on:
       - ctest-base-fedora
-    userns_mode: "keep-id"
     volumes:
       - ../.:/home/fedora/ctest
     entrypoint: ["/bin/bash", "/home/fedora/ctest/docker/scripts/compile.sh"]
@@ -20,7 +19,6 @@ services:
     image: ctest-base:fedora
     depends_on:
       - ctest-base-fedora
-    userns_mode: "keep-id"
     volumes:
       - ../.:/home/fedora/ctest
     entrypoint: ["/bin/bash", "/home/fedora/ctest/docker/scripts/test.sh"]
@@ -45,7 +43,6 @@ services:
     image: ctest-base:ubuntu
     depends_on:
       - ctest-base-ubuntu
-    userns_mode: "keep-id"
     volumes:
       - ../.:/home/ubuntu/ctest
     entrypoint: ["/bin/bash", "/home/ubuntu/ctest/docker/scripts/compile.sh"]
@@ -54,7 +51,6 @@ services:
     image: ctest-base:ubuntu
     depends_on:
       - ctest-base-ubuntu
-    userns_mode: "keep-id"
     volumes:
       - ../.:/home/ubuntu/ctest
     entrypoint: ["/bin/bash", "/home/ubuntu/ctest/docker/scripts/test.sh"]
