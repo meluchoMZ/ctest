@@ -1,5 +1,6 @@
 [![amd64-build](https://github.com/meluchoMZ/ctest/actions/workflows/amd64-build.yml/badge.svg)](https://github.com/meluchoMZ/ctest/actions/workflows/amd64-build.yml)
 [![amd64-test](https://github.com/meluchoMZ/ctest/actions/workflows/amd64-test.yml/badge.svg)](https://github.com/meluchoMZ/ctest/actions/workflows/amd64-test.yml)
+[![amd64-install](https://github.com/meluchoMZ/ctest/actions/workflows/amd64-test.yml/badge.svg)](https://github.com/meluchoMZ/ctest/actions/workflows/amd64-install.yml)
 
 # CTest
 
