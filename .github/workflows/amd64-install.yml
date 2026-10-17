@@ -1,0 +1,71 @@
+name: amd64-install
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  build-ubuntu:
+    runs-on: [self-hosted, X64, vostok]
+
+    steps:
+      - name: Create temporary workspace directory
+        run: |
+          EXEC_DIR="tmp_${{ github.run_id }}_${{ github.run_attempt }}_ubuntu"
+          echo "EXEC_DIR=${EXEC_DIR}" >> $GITHUB_ENV
+          mkdir -p "${EXEC_DIR}"
+
+      - name: Checkout pull request code
+        uses: actions/checkout@v4
+        with:
+          path: ${{ env.EXEC_DIR }}
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Run Docker installation (ubuntu)
+        run: |
+          cd "${{ env.EXEC_DIR }}"
+          docker compose -f docker/docker-compose.yml up --build --exit-code-from ubuntu-install ubuntu-install
+
+      - name: Clean up temporary directory
+        if: always()
+        run: |
+          if [ -d "${{ env.EXEC_DIR }}" ]; then
+            cd "${{ env.EXEC_DIR }}"
+            docker compose -f docker/docker-compose.yml down --volumes --remove-orphans || true
+            cd ..
+            rm -rf "${{ env.EXEC_DIR }}"
+          fi
+
+  build-fedora:
+    runs-on: [self-hosted, X64, vostok]
+
+    steps:
+      - name: Create temporary workspace directory
+        run: |
+          EXEC_DIR="tmp_${{ github.run_id }}_${{ github.run_attempt }}_fedora"
+          echo "EXEC_DIR=${EXEC_DIR}" >> $GITHUB_ENV
+          mkdir -p "${EXEC_DIR}"
+
+      - name: Checkout pull request code
+        uses: actions/checkout@v4
+        with:
+          path: ${{ env.EXEC_DIR }}
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Run Docker installation (fedora)
+        run: |
+          cd "${{ env.EXEC_DIR }}"
+          docker compose -f docker/docker-compose.yml up --build --exit-code-from fedora-install fedora-install
+
+      - name: Clean up temporary directory
+        if: always()
+        run: |
+          if [ -d "${{ env.EXEC_DIR }}" ]; then
+            cd "${{ env.EXEC_DIR }}"
+            docker compose -f docker/docker-compose.yml down --volumes --remove-orphans || true
+            cd ..
+            rm -rf "${{ env.EXEC_DIR }}"
+          fi
