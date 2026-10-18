@@ -13,100 +13,100 @@ void sampleTestFunction(void)
 	return;
 }
 
-void assertFunctionPointerEquals(TestFunction expected, TestFunction actual)
+void assertFunctionPointerEquals(CTest_TestFunction expected, CTest_TestFunction actual)
 {
 	if (!(expected == actual)) {
 		_Exit(EXIT_FAILURE);
 	}
 }
 
-TEST(TestCaseTests, createTestCase, Tests that a TestCase is created correctly)
+TEST(TestCaseTests, createTestCase, Tests that a CTest_TestCase is created correctly)
 {
 	const char *name = "testCase";
 	const char *suite = "sutie";
 	const char *desc = "description";
-	TestCase *testCase = createTestCase(name, suite, desc, sampleTestFunction);
-	ASSERT_NON_NULL(testCase);
-	ASSERT_STRING_EQUALS(name, testCase->name);
-	ASSERT_STRING_EQUALS(suite, testCase->suiteName);
-	ASSERT_STRING_EQUALS(desc, testCase->description);
+	CTest_TestCase *testCase = createTestCase(name, suite, desc, sampleTestFunction);
+	CT_ASSERT_NON_NULL(testCase);
+	CT_ASSERT_STRING_EQUALS(name, testCase->name);
+	CT_ASSERT_STRING_EQUALS(suite, testCase->suiteName);
+	CT_ASSERT_STRING_EQUALS(desc, testCase->description);
 	assertFunctionPointerEquals(sampleTestFunction, testCase->execute);
 	free(testCase);
 }
 
-TEST(TestCaseTests, freeTestCase, Tests that a TestCase is freed correctly)
+TEST(TestCaseTests, freeTestCase, Tests that a CTest_TestCase is freed correctly)
 {
 	const char *name = "testCase";
 	const char *suite = "sutie";
 	const char *desc = "description";
-	TestCase *testCase = createTestCase(name, suite, desc, sampleTestFunction);
-	ASSERT_NON_NULL(testCase);
-	ASSERT_STRING_EQUALS(name, testCase->name);
-	ASSERT_STRING_EQUALS(suite, testCase->suiteName);
-	ASSERT_STRING_EQUALS(desc, testCase->description);
+	CTest_TestCase *testCase = createTestCase(name, suite, desc, sampleTestFunction);
+	CT_ASSERT_NON_NULL(testCase);
+	CT_ASSERT_STRING_EQUALS(name, testCase->name);
+	CT_ASSERT_STRING_EQUALS(suite, testCase->suiteName);
+	CT_ASSERT_STRING_EQUALS(desc, testCase->description);
 	assertFunctionPointerEquals(sampleTestFunction, testCase->execute);
 	freeTestCase(testCase);
 }
 
-TEST(TestCaseTests, addTestCaseToSuite, Tests that a TestCase is correctly added to a TestSuite)
+TEST(TestCaseTests, addTestCaseToSuite, Tests that a CTest_TestCase is correctly added to a TestSuite)
 {
 	const char *name = "testCase";
 	const char *suite = "sutie";
 	const char *desc = "description";
-	TestCase *testCase = createTestCase(name, suite, desc, sampleTestFunction);
-	ASSERT_NON_NULL(testCase);
-	TestSuite *testSuite = createTestSuite(suite);
-	ASSERT_NON_NULL(testSuite);
-	ASSERT_LONG_EQUALS(10, testSuite->testCaseSize);
-	ASSERT_LONG_EQUALS(0, testSuite->testCount);
+	CTest_TestCase *testCase = createTestCase(name, suite, desc, sampleTestFunction);
+	CT_ASSERT_NON_NULL(testCase);
+	CTest_TestSuite *testSuite = createTestSuite(suite);
+	CT_ASSERT_NON_NULL(testSuite);
+	CT_ASSERT_LONG_EQUALS(10, testSuite->testCaseSize);
+	CT_ASSERT_LONG_EQUALS(0, testSuite->testCount);
 	addTestCase(testSuite, testCase);
-	ASSERT_LONG_EQUALS(10, testSuite->testCaseSize);
-	ASSERT_LONG_EQUALS(1, testSuite->testCount);
+	CT_ASSERT_LONG_EQUALS(10, testSuite->testCaseSize);
+	CT_ASSERT_LONG_EQUALS(1, testSuite->testCount);
 	freeTestSuite(&testSuite);
 }
 
-TEST(TestCaseTests, addTestCaseAlreadyAdded, Tests that a already added TestCase is not added to a TestSuite)
+TEST(TestCaseTests, addTestCaseAlreadyAdded, Tests that a already added CTest_TestCase is not added to a TestSuite)
 {
 	const char *name = "testCase";
 	const char *suite = "sutie";
 	const char *desc = "description";
-	TestCase *testCase = createTestCase(name, suite, desc, sampleTestFunction);
-	ASSERT_NON_NULL(testCase);
-	TestSuite *testSuite = createTestSuite(suite);
-	ASSERT_NON_NULL(testSuite);
-	ASSERT_LONG_EQUALS(10, testSuite->testCaseSize);
-	ASSERT_LONG_EQUALS(0, testSuite->testCount);
+	CTest_TestCase *testCase = createTestCase(name, suite, desc, sampleTestFunction);
+	CT_ASSERT_NON_NULL(testCase);
+	CTest_TestSuite *testSuite = createTestSuite(suite);
+	CT_ASSERT_NON_NULL(testSuite);
+	CT_ASSERT_LONG_EQUALS(10, testSuite->testCaseSize);
+	CT_ASSERT_LONG_EQUALS(0, testSuite->testCount);
 	addTestCase(testSuite, testCase);
-	ASSERT_LONG_EQUALS(10, testSuite->testCaseSize);
-	ASSERT_LONG_EQUALS(1, testSuite->testCount);
+	CT_ASSERT_LONG_EQUALS(10, testSuite->testCaseSize);
+	CT_ASSERT_LONG_EQUALS(1, testSuite->testCount);
 	addTestCase(testSuite, testCase);
-	ASSERT_LONG_EQUALS(10, testSuite->testCaseSize);
-	ASSERT_LONG_EQUALS(1, testSuite->testCount);
+	CT_ASSERT_LONG_EQUALS(10, testSuite->testCaseSize);
+	CT_ASSERT_LONG_EQUALS(1, testSuite->testCount);
 	freeTestSuite(&testSuite);
 }
 
-TEST(TestCaseTests, addTestCaseToSuiteForcingRealloc, Tests that a TestCase is correctly added to a TestSuite when a realloc is forced)
+TEST(TestCaseTests, addTestCaseToSuiteForcingRealloc, Tests that a CTest_TestCase is correctly added to a CTest_TestSuite when a realloc is forced)
 {
 	const char *name = "testCase";
 	const char *suite = "sutie";
 	const char *desc = "description";
-	TestCase *testCase = createTestCase(name, suite, desc, sampleTestFunction);
-	ASSERT_NON_NULL(testCase);
-	TestSuite *testSuite = malloc(sizeof(TestSuite));
-	ASSERT_NON_NULL(testSuite);
-	testSuite->testCases = malloc(sizeof(TestCase));
-	ASSERT_NON_NULL(testSuite->testCases);
+	CTest_TestCase *testCase = createTestCase(name, suite, desc, sampleTestFunction);
+	CT_ASSERT_NON_NULL(testCase);
+	CTest_TestSuite *testSuite = malloc(sizeof(CTest_TestSuite));
+	CT_ASSERT_NON_NULL(testSuite);
+	testSuite->testCases = malloc(sizeof(CTest_TestCase));
+	CT_ASSERT_NON_NULL(testSuite->testCases);
 	testSuite->testCaseSize = 1;
 	testSuite->testCount = 0;
-	ASSERT_LONG_EQUALS(1, testSuite->testCaseSize);
-	ASSERT_LONG_EQUALS(0, testSuite->testCount);
+	CT_ASSERT_LONG_EQUALS(1, testSuite->testCaseSize);
+	CT_ASSERT_LONG_EQUALS(0, testSuite->testCount);
 	addTestCase(testSuite, testCase);
-	ASSERT_LONG_EQUALS(1, testSuite->testCaseSize);
-	ASSERT_LONG_EQUALS(1, testSuite->testCount);
+	CT_ASSERT_LONG_EQUALS(1, testSuite->testCaseSize);
+	CT_ASSERT_LONG_EQUALS(1, testSuite->testCount);
 	const char *name2 = "testCase2";
-	TestCase *testCase2 = createTestCase(name2, suite, desc, sampleTestFunction);
+	CTest_TestCase *testCase2 = createTestCase(name2, suite, desc, sampleTestFunction);
 	addTestCase(testSuite, testCase2);
-	ASSERT_LONG_EQUALS(11, testSuite->testCaseSize);
-	ASSERT_LONG_EQUALS(2,  testSuite->testCount);
+	CT_ASSERT_LONG_EQUALS(11, testSuite->testCaseSize);
+	CT_ASSERT_LONG_EQUALS(2,  testSuite->testCount);
 	freeTestSuite(&testSuite);
 }

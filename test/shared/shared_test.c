@@ -14,5 +14,5 @@
 
 TEST(ClientTests, testSimpleAssertion, "Tests client usage by executing tests against the shared library, without direct static compilation")
 {
-	ASSERT_TRUE(1 == 1);
+	CT_ASSERT_TRUE(1 == 1);
 }

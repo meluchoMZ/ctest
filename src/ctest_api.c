@@ -13,7 +13,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-void printCallerStackTrace(void)
+void CT_printCallerStackTrace(void)
 {
 	void *stackTraceBuffer[10];
 	int stackTraceBufferCount = 0;
@@ -33,147 +33,147 @@ void printCallerStackTrace(void)
 	free(stackTrace);
 }
 
-void endTestWithError(const char *filePath, int line, const char *caller, const char *error)
+void CT_endTestWithError(const char *filePath, int line, const char *caller, const char *error)
 {
 	fprintf(stderr, "[CTEST] Assertion error in '%s:%d' | %s | %s\n", filePath, line, caller, error);
-	printCallerStackTrace();
+	CT_printCallerStackTrace();
 	// flush buffers to avoid data loss through the child - parent pipe
 	fflush(stdout); fflush(stderr);
 	_Exit(EXIT_FAILURE);
 }
 
-void assertTrue(const char *filePath, int line, bool condition)
+void CT_AssertTrue(const char *filePath, int line, bool condition)
 {
 	if (!condition) {
-		endTestWithError(filePath, line, __func__, "actual: FALSE, expected: TRUE");
+		CT_endTestWithError(filePath, line, __func__, "actual: FALSE, expected: TRUE");
 	}
 }
 
-void assertFalse(const char *filePath, int line, bool condition)
+void CT_AssertFalse(const char *filePath, int line, bool condition)
 {
 	if (condition) {
-		endTestWithError(filePath, line, __func__, "actual: TRUE, expected: FALSE");
+		CT_endTestWithError(filePath, line, __func__, "actual: TRUE, expected: FALSE");
 	}
 }
 
-void assertNull(const char *filePath, int line, void *pointer)
+void CT_AssertNull(const char *filePath, int line, void *pointer)
 {
 	if (pointer != NULL) {
 		char errorBuffer[64];
 		snprintf(errorBuffer, 64, "actual: %p, expected: NULL", pointer);
-		endTestWithError(filePath, line, __func__, errorBuffer);
+		CT_endTestWithError(filePath, line, __func__, errorBuffer);
 	}
 }
 
-void assertNonNull(const char *filePath, int line, void *pointer)
+void CT_AssertNonNull(const char *filePath, int line, void *pointer)
 {
 	if (pointer == NULL) {
 		char errorBuffer[64];
 		snprintf(errorBuffer, 64, "actual: NULL, expected: %p", pointer);
-		endTestWithError(filePath, line, __func__, errorBuffer);
+		CT_endTestWithError(filePath, line, __func__, errorBuffer);
 	}
 }
 
-void assertPointerEquals(const char *filePath, int line, void *expected, void *actual)
+void CT_AssertPointerEquals(const char *filePath, int line, void *expected, void *actual)
 {
 	if (expected != actual) {
 		char errorBuffer[64];
 		snprintf(errorBuffer, 64, "actual: %p, expected: %p", actual, expected);
-		endTestWithError(filePath, line, __func__, errorBuffer);
+		CT_endTestWithError(filePath, line, __func__, errorBuffer);
 	}
 }
 
-void assert8BitUIntEquals(const char *filePath, int line, uint8_t expected, uint8_t actual)
+void CT_Assert8BitUIntEquals(const char *filePath, int line, uint8_t expected, uint8_t actual)
 {
 	if (expected != actual) {
 		char errorBuffer[64];
 		snprintf(errorBuffer, 64, "actual: %d, expected: %d", actual, expected);
-		endTestWithError(filePath, line, __func__, errorBuffer);
+		CT_endTestWithError(filePath, line, __func__, errorBuffer);
 	}
 }
 
-void assert16BitUIntEquals(const char *filePath, int line, uint16_t expected, uint16_t actual)
+void CT_Assert16BitUIntEquals(const char *filePath, int line, uint16_t expected, uint16_t actual)
 {
 	if (expected != actual) {
 		char errorBuffer[64];
 		snprintf(errorBuffer, 64, "actual: %d, expected: %d", actual, expected);
-		endTestWithError(filePath, line, __func__, errorBuffer);
+		CT_endTestWithError(filePath, line, __func__, errorBuffer);
 	}
 }
 
-void assert32BitUIntEquals(const char *filePath, int line, uint32_t expected, uint32_t actual)
+void CT_Assert32BitUIntEquals(const char *filePath, int line, uint32_t expected, uint32_t actual)
 {
 	if (expected != actual) {
 		char errorBuffer[64];
 		snprintf(errorBuffer, 64, "actual: %d, expected: %d", actual, expected);
-		endTestWithError(filePath, line, __func__, errorBuffer);
+		CT_endTestWithError(filePath, line, __func__, errorBuffer);
 	}
 }
 
-void assert64BitUIntEquals(const char *filePath, int line, uint64_t expected, uint64_t actual)
+void CT_Assert64BitUIntEquals(const char *filePath, int line, uint64_t expected, uint64_t actual)
 {
 	if (expected != actual) {
 		char errorBuffer[64];
 		snprintf(errorBuffer, 64, "actual: %" PRIu64 ", expected: %" PRIu64, actual, expected);
-		endTestWithError(filePath, line, __func__, errorBuffer);
+		CT_endTestWithError(filePath, line, __func__, errorBuffer);
 	}
 }
 
-void assert8BitIntEquals(const char *filePath, int line, int8_t expected, int8_t actual)
+void CT_Assert8BitIntEquals(const char *filePath, int line, int8_t expected, int8_t actual)
 {
 	if (expected != actual) {
 		char errorBuffer[64];
 		snprintf(errorBuffer, 64, "actual: %d, expected: %d", actual, expected);
-		endTestWithError(filePath, line, __func__, errorBuffer);
+		CT_endTestWithError(filePath, line, __func__, errorBuffer);
 	}
 }
 
-void assert16BitIntEquals(const char *filePath, int line, int16_t expected, int16_t actual)
+void CT_Assert16BitIntEquals(const char *filePath, int line, int16_t expected, int16_t actual)
 {
 	if (expected != actual) {
 		char errorBuffer[64];
 		snprintf(errorBuffer, 64, "actual: %d, expected: %d", actual, expected);
-		endTestWithError(filePath, line, __func__, errorBuffer);
+		CT_endTestWithError(filePath, line, __func__, errorBuffer);
 	}
 }
 
-void assert32BitIntEquals(const char *filePath, int line, int32_t expected, int32_t actual)
+void CT_Assert32BitIntEquals(const char *filePath, int line, int32_t expected, int32_t actual)
 {
 	if (expected != actual) {
 		char errorBuffer[64];
 		snprintf(errorBuffer, 64, "actual: %d, expected: %d", actual, expected);
-		endTestWithError(filePath, line, __func__, errorBuffer);
+		CT_endTestWithError(filePath, line, __func__, errorBuffer);
 	}
 }
 
-void assert64BitIntEquals(const char *filePath, int line, int64_t expected, int64_t actual)
+void CT_Assert64BitIntEquals(const char *filePath, int line, int64_t expected, int64_t actual)
 {
 	if (expected != actual) {
 		char errorBuffer[64];
 		snprintf(errorBuffer, 64, "actual: %" PRIi64 ", expected: %" PRIi64, actual, expected);
-		endTestWithError(filePath, line, __func__, errorBuffer);
+		CT_endTestWithError(filePath, line, __func__, errorBuffer);
 	}
 }
 
-void assertIntEquals(const char *filePath, int line, long expected, long actual)
+void CT_AssertIntEquals(const char *filePath, int line, long expected, long actual)
 {
 	if (expected != actual) {
 		char errorBuffer[64];
 		snprintf(errorBuffer, 64, "actual: %ld, expected: %ld", actual, expected);
-		endTestWithError(filePath, line, __func__, errorBuffer);
+		CT_endTestWithError(filePath, line, __func__, errorBuffer);
 	}
 }
 
-void assertLongEquals(const char *filePath, int line, long expected, long actual)
+void CT_AssertLongEquals(const char *filePath, int line, long expected, long actual)
 {
 	if (expected != actual) {
 		char errorBuffer[64];
 		snprintf(errorBuffer, 64, "actual: %ld, expected: %ld", actual, expected);
-		endTestWithError(filePath, line, __func__, errorBuffer);
+		CT_endTestWithError(filePath, line, __func__, errorBuffer);
 	}
 }
 
-void assertStringEquals(const char *filePath, int line, const char *expected, const char *actual)
+void CT_AssertStringEquals(const char *filePath, int line, const char *expected, const char *actual)
 {
 	char errorBuffer[64];
 	snprintf(errorBuffer, 64, "actual: %s, expected: %s", actual, expected);
@@ -181,12 +181,12 @@ void assertStringEquals(const char *filePath, int line, const char *expected, co
 		return;
 	}
 	if (expected == NULL && actual != NULL) {
-		endTestWithError(filePath, line, __func__, errorBuffer);
+		CT_endTestWithError(filePath, line, __func__, errorBuffer);
 	}
 	if (expected != NULL && actual == NULL) {
-		endTestWithError(filePath, line, __func__, errorBuffer);
+		CT_endTestWithError(filePath, line, __func__, errorBuffer);
 	}
 	if (strcmp(expected, actual) != 0) {
-		endTestWithError(filePath, line, __func__, errorBuffer);
+		CT_endTestWithError(filePath, line, __func__, errorBuffer);
 	}
 }

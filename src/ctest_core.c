@@ -21,16 +21,16 @@
 #include <termios.h>
 #include <unistd.h>
 
-TestStatus *testStatus = NULL;
+CTest_TestStatus *testStatus = NULL;
 // Start of global test state
 static void __attribute__((constructor(101))) initTests(void)
 {
-	testStatus = malloc(sizeof(TestStatus));
+	testStatus = malloc(sizeof(CTest_TestStatus));
 	if (testStatus == NULL) {
 		fprintf(stderr, "[CTEST] Error initializing test framework: %s\n", strerror(errno));
 		return;
 	}
-	testStatus->testSuites = malloc(sizeof(TestSuite) * 10);
+	testStatus->testSuites = malloc(sizeof(CTest_TestSuite) * 10);
 	if (testStatus->testSuites == NULL) {
 		fprintf(stderr, "[CTEST] | Error | could not allocate memory for storing test suites: %s\n", strerror(errno));
 		free(testStatus);
@@ -60,11 +60,11 @@ static void __attribute__((destructor)) finalizeTests(void)
 	_Exit(successfulExecution ? EXIT_SUCCESS : EXIT_FAILURE);
 }	
 
-TestResult * createTestResult(TestExecutionStatus status, const char *logs, size_t logSize)
+CTest_TestResult * createTestResult(CTest_TestExecutionStatus status, const char *logs, size_t logSize)
 {
-	TestResult *testResult = malloc(sizeof(TestResult));
+	CTest_TestResult *testResult = malloc(sizeof(CTest_TestResult));
 	if (testResult == NULL) {
-		fprintf(stderr, "[CTEST] | Error | could not allocate memory for TestResult element: %s\n",
+		fprintf(stderr, "[CTEST] | Error | could not allocate memory for CTest_TestResult element: %s\n",
 				strerror(errno));
 		return NULL;
 	}
@@ -73,7 +73,7 @@ TestResult * createTestResult(TestExecutionStatus status, const char *logs, size
 	if (logSize > 0 && logs != NULL) {
 		testResult->logs = malloc(logSize + 1 * sizeof(char));
 		if (testResult->logs == NULL) {
-			fprintf(stderr, "[CTEST] | Error | could not allocate memory for TestResult.logs: %s\n",
+			fprintf(stderr, "[CTEST] | Error | could not allocate memory for CTest_TestResult.logs: %s\n",
 					strerror(errno));
 			return testResult;
 		}
@@ -85,7 +85,7 @@ TestResult * createTestResult(TestExecutionStatus status, const char *logs, size
 	return testResult;
 }
 
-void freeTestResult(TestResult **testResult)
+void freeTestResult(CTest_TestResult **testResult)
 {
 	if (testResult != NULL && *testResult != NULL) {
 		if ((*testResult)->logs != NULL) {
@@ -97,12 +97,12 @@ void freeTestResult(TestResult **testResult)
 	}
 }
 
-TestCase * createTestCase(const char *testName, const char *testSuite, const char *description, 
-		TestFunction testFunction)
+CTest_TestCase * createTestCase(const char *testName, const char *testSuite, const char *description, 
+		CTest_TestFunction testFunction)
 {
-	TestCase *testCase = malloc(sizeof(TestCase));
+	CTest_TestCase *testCase = malloc(sizeof(CTest_TestCase));
 	if (testSuite == NULL) {
-		fprintf(stderr, "[CTEST] Error: could not allocate memory for `TestCase` element: %s\n", strerror(errno));
+		fprintf(stderr, "[CTEST] Error: could not allocate memory for `CTest_TestCase` element: %s\n", strerror(errno));
 	}
 	testCase->name = testName;
 	testCase->suiteName = testSuite;
@@ -114,7 +114,7 @@ TestCase * createTestCase(const char *testName, const char *testSuite, const cha
 	return testCase;
 }
 
-void freeTestCase(TestCase *testCase)
+void freeTestCase(CTest_TestCase *testCase)
 {
 	if (testCase != NULL) {
 		if (testCase->testResult != NULL) {
@@ -126,28 +126,28 @@ void freeTestCase(TestCase *testCase)
 }
 
 
-bool addTestCase(TestSuite *testSuite, TestCase *testCase)
+bool addTestCase(CTest_TestSuite *testSuite, CTest_TestCase *testCase)
 {
 	if (testCase == NULL) {
-		fprintf(stderr, "[CTEST] | Error | cannot add TestCase to TestSuite element: testCase == NULL\n");
+		fprintf(stderr, "[CTEST] | Error | cannot add TestCase to CTest_TestSuite element: testCase == NULL\n");
 		return false;
 	}
 	if (testSuite == NULL) {
-		fprintf(stderr, "[CTEST] | Error | cannot add TestCase to TestSuite element: testSuite == NULL\n");
+		fprintf(stderr, "[CTEST] | Error | cannot add TestCase to CTest_TestSuite element: testSuite == NULL\n");
 		return false;
 	}
 	if (testSuite->testCases == NULL) {
-		fprintf(stderr, "[CTEST] | Error | cannot add testCase to TestSuite element: testSuite->testCases == NULL\n");
+		fprintf(stderr, "[CTEST] | Error | cannot add testCase to CTest_TestSuite element: testSuite->testCases == NULL\n");
 		return false;
 	}
 	if (testCase->name == NULL) {
-		fprintf(stderr, "[CTEST] | Error | cannot add TestCase to TestSuite element: testCase->name == NULL\n");
+		fprintf(stderr, "[CTEST] | Error | cannot add TestCase to CTest_TestSuite element: testCase->name == NULL\n");
 		return false;
 	}
 
 	for (int i = 0; i < testSuite->testCount; ++i) {
 		if (strcmp(testCase->name, testSuite->testCases[i]->name) == 0) {
-			fprintf(stderr, "[CTEST] | Error | cannot add TestCase '%s': test case already exists\n", testSuite->name);
+			fprintf(stderr, "[CTEST] | Error | cannot add CTest_TestCase '%s': test case already exists\n", testSuite->name);
 			return false;
 		}
 	}
@@ -155,9 +155,9 @@ bool addTestCase(TestSuite *testSuite, TestCase *testCase)
 	// realloc if necessary
 	if (testSuite->testCount == testSuite->testCaseSize) {
 		long newSize = testSuite->testCaseSize + 10;
-		TestCase **tmp = realloc(testSuite->testCases, newSize * sizeof(TestCase));
+		CTest_TestCase **tmp = realloc(testSuite->testCases, newSize * sizeof(CTest_TestCase));
 		if (tmp == NULL) {
-			fprintf(stderr, "[CTEST] | Error | could not realloc more size for the TestCases list: %s\n", strerror(errno));
+			fprintf(stderr, "[CTEST] | Error | could not realloc more size for the CTest_TestCases list: %s\n", strerror(errno));
 			return false;
 		} else {
 			testSuite->testCases = tmp;
@@ -169,15 +169,15 @@ bool addTestCase(TestSuite *testSuite, TestCase *testCase)
 	return true;
 }
 
-TestSuite * createTestSuite(const char *name)
+CTest_TestSuite * createTestSuite(const char *name)
 {
-	TestSuite *testSuite = malloc(sizeof(TestSuite));
+	CTest_TestSuite *testSuite = malloc(sizeof(CTest_TestSuite));
 	if (testSuite == NULL) {
-		fprintf(stderr, "[CTEST] | Error | could not allocate memory for `TestSuite` element: %s\n", strerror(errno));
+		fprintf(stderr, "[CTEST] | Error | could not allocate memory for `CTest_TestSuite` element: %s\n", strerror(errno));
 		return NULL;
 	}
 	testSuite->name = name;
-	testSuite->testCases = malloc(sizeof(TestCase) * 10);
+	testSuite->testCases = malloc(sizeof(CTest_TestCase) * 10);
 	if (testSuite->testCases == NULL) {
 		fprintf(stderr, "[CTEST] | Error | could not allocate memory for test cases in suite '%s': %s\n", 
 				name, strerror(errno));
@@ -192,22 +192,22 @@ TestSuite * createTestSuite(const char *name)
 	return testSuite;
 }
 
-bool addTestSuite(TestStatus *testStatus, TestSuite *testSuite)
+bool addTestSuite(CTest_TestStatus *testStatus, CTest_TestSuite *testSuite)
 {
 	if (testStatus == NULL) {
-		fprintf(stderr, "[CTEST] | Error | cannot add TestSuite to TestStatus element: testStatus == NULL\n");
+		fprintf(stderr, "[CTEST] | Error | cannot add CTest_TestSuite to CTest_TestStatus element: testStatus == NULL\n");
 		return false;
 	}
 	if (testSuite == NULL) {
-		fprintf(stderr, "[CTEST] | Error | cannot add TestSuite to TestStatus element: testSuite == NULL\n");
+		fprintf(stderr, "[CTEST] | Error | cannot add CTest_TestSuite to CTest_TestStatus element: testSuite == NULL\n");
 		return false;
 	}
 	if (testStatus->testSuites == NULL) {
-		fprintf(stderr, "[CTEST] | Error | cannot add TestSuite to TestStatus element: testSuite->testSuites == NULL\n");
+		fprintf(stderr, "[CTEST] | Error | cannot add CTest_TestSuite to CTest_TestStatus element: testSuite->testSuites == NULL\n");
 		return false;
 	}
 	if (testSuite->name == NULL) {
-		fprintf(stderr, "[CTEST] | Error | cannot add TestSuite to TestStatus element: testSuite->name == NULL\n");
+		fprintf(stderr, "[CTEST] | Error | cannot add CTest_TestSuite to CTest_TestStatus element: testSuite->name == NULL\n");
 		return false;
 	}
 
@@ -221,9 +221,9 @@ bool addTestSuite(TestStatus *testStatus, TestSuite *testSuite)
 	// realloc if necessary
 	if (testStatus->suiteCount == testStatus->testSuitesSize) {
 		long newSize = testStatus->suiteCount + 10;
-		TestSuite **tmp = realloc(testStatus->testSuites, newSize * sizeof(TestSuite));
+		CTest_TestSuite **tmp = realloc(testStatus->testSuites, newSize * sizeof(CTest_TestSuite));
 		if (tmp == NULL) {
-			fprintf(stderr, "[CTEST] | Error | could not realloc more size for the TestSuites lists: %s\n", strerror(errno));
+			fprintf(stderr, "[CTEST] | Error | could not realloc more size for the CTest_TestSuites lists: %s\n", strerror(errno));
 			return false;
 		} else {
 			testStatus->testSuites = tmp;
@@ -235,10 +235,10 @@ bool addTestSuite(TestStatus *testStatus, TestSuite *testSuite)
 	return true;
 }
 
-void freeTestSuite(TestSuite **testSuitePtr)
+void freeTestSuite(CTest_TestSuite **testSuitePtr)
 {
 	if (testSuitePtr != NULL) {
-		TestSuite *testSuite = *testSuitePtr;
+		CTest_TestSuite *testSuite = *testSuitePtr;
 		if (testSuite != NULL) {
 			if (testSuite->testCases != NULL) {
 				for (int i = 0; i < testSuite->testCount; ++i) {
@@ -255,7 +255,7 @@ void freeTestSuite(TestSuite **testSuitePtr)
 	}
 }
 
-TestResult * getTestResultFromExpectedFailure(TestExecutionStatus status, const char *expected,
+CTest_TestResult * getTestResultFromExpectedFailure(CTest_TestExecutionStatus status, const char *expected,
 		const char *output, int size, bool isRegexp)
 {
 	const char *regularizedExpected = expected;
@@ -266,17 +266,17 @@ TestResult * getTestResultFromExpectedFailure(TestExecutionStatus status, const 
 			char buffer[size + 100];
 			snprintf(buffer, bufferSize, "[CTEST] | Error | Unable to create regular expression for: '%s'\n", expected);
 			regfree(&regexp);
-			return createTestResult(CRASH_OTHER, buffer, bufferSize);
+			return createTestResult(CTEST_CRASH_OTHER, buffer, bufferSize);
 		} else {
 			if (regexec(&regexp, output, 0, NULL, 0) == 0) {
 				regfree(&regexp);
-				return createTestResult(SUCCESS, output, size);
+				return createTestResult(CTEST_SUCCESS, output, size);
 			} else {
 				int bufferSize = size + 100;
 				char buffer[size + 100];
 				snprintf(buffer, bufferSize, "[CTEST] | Error | regexp does not match output | regexp: '%s', output: '%s'\n", expected, output);
 				regfree(&regexp);
-				return createTestResult(FAILURE, buffer, bufferSize);
+				return createTestResult(CTEST_FAILURE, buffer, bufferSize);
 			}
 		}
 	}
@@ -286,7 +286,7 @@ TestResult * getTestResultFromExpectedFailure(TestExecutionStatus status, const 
 		return createTestResult(status, output, size);
 	} else {
 		// if it matches, return success
-		return createTestResult(SUCCESS, output, size);
+		return createTestResult(CTEST_SUCCESS, output, size);
 	}
 }
 
@@ -299,7 +299,7 @@ TestResult * getTestResultFromExpectedFailure(TestExecutionStatus status, const 
  * a pipe so that the code executed in the test does not get
  * shown to the user
  */
-TestResult * executeTest(TestFunction testFunction, const char *expectedError, bool regexp)
+CTest_TestResult * executeTest(CTest_TestFunction testFunction, const char *expectedError, bool regexp)
 {
 	pid_t pid;
 	int status;
@@ -310,14 +310,14 @@ TestResult * executeTest(TestFunction testFunction, const char *expectedError, b
 
 	if (pipe(pipefd) != 0) {
 		fprintf(stderr, "[CTEST] | Error | could not create pipe: %s\n", strerror(errno));
-		return createTestResult(CRASH_OTHER, NULL, 0);
+		return createTestResult(CTEST_CRASH_OTHER, NULL, 0);
 	}
 	pid = fork();
 	if (pid == -1) {
 		close(pipefd[0]);
 		close(pipefd[1]);
 		fprintf(stderr, "[CTEST] | Error | could not create child process: %s\n", strerror(errno));
-		return createTestResult(CRASH_OTHER, NULL, 0);
+		return createTestResult(CTEST_CRASH_OTHER, NULL, 0);
 	}
 	// flush buffers to child process has 'clean' output and error buffers
 	fflush(stdout); fflush(stderr);
@@ -341,15 +341,15 @@ TestResult * executeTest(TestFunction testFunction, const char *expectedError, b
 	close(pipefd[0]);
 	if (WIFEXITED(status)) {
 		return WEXITSTATUS(status) == EXIT_SUCCESS ?
-		   createTestResult(SUCCESS, childProcessOutput, bytesRead) :
-		   getTestResultFromExpectedFailure(FAILURE, expectedError, childProcessOutput, bytesRead, regexp);
+		   createTestResult(CTEST_SUCCESS, childProcessOutput, bytesRead) :
+		   getTestResultFromExpectedFailure(CTEST_FAILURE, expectedError, childProcessOutput, bytesRead, regexp);
 	}
 	if (WIFSIGNALED(status)) {
 		if (WTERMSIG(status) == SIGSEGV) {
-			return getTestResultFromExpectedFailure(CRASH_SEGV, expectedError, childProcessOutput, bytesRead, regexp);
+			return getTestResultFromExpectedFailure(CTEST_CRASH_SEGV, expectedError, childProcessOutput, bytesRead, regexp);
 		}
 	}
-	return getTestResultFromExpectedFailure(CRASH_OTHER, expectedError, childProcessOutput, bytesRead, regexp);
+	return getTestResultFromExpectedFailure(CTEST_CRASH_OTHER, expectedError, childProcessOutput, bytesRead, regexp);
 }
 
 /**
@@ -385,12 +385,12 @@ int getTerminalWidth()
 /**
  * Prints a single test execution with elapsed time
  */
-void printTestResult(const char *testCaseName, int terminalWidth, double testExecutionTime, TestResult *testResult)
+void printTestResult(const char *testCaseName, int terminalWidth, double testExecutionTime, CTest_TestResult *testResult)
 {
-	size_t remainingColumns = terminalWidth - strlen(testCaseName) - TEST_RESULT_MESSAGE_SIZE - 6; // 6 cols padding
-	const char *statusSymbol = testResult->status == SUCCESS
-		? GREEN "✓" RESET
-		: RED "✗" RESET;
+	size_t remainingColumns = terminalWidth - strlen(testCaseName) - CTEST_TEST_RESULT_MESSAGE_SIZE - 6; // 6 cols padding
+	const char *statusSymbol = testResult->status == CTEST_SUCCESS
+		? CTEST_COLOR_GREEN "✓" CTEST_COLOR_RESET
+		: CTEST_COLOR_RED "✗" CTEST_COLOR_RESET;
 	char testExecutionStringBuffer[32];
 	int testExecutionStringSize = snprintf(testExecutionStringBuffer,
 			sizeof(testExecutionStringBuffer), "%.4f ms", testExecutionTime);
@@ -403,8 +403,8 @@ void printTestResult(const char *testCaseName, int terminalWidth, double testExe
 	}
 	printf("%s\n", testExecutionStringBuffer);
 	// print all child process STDOUT and STDERR logs as errors
-	if (testResult->logs != NULL && testResult->status != SUCCESS) {
-		printf(RED "%s\n" RESET, testResult->logs);
+	if (testResult->logs != NULL && testResult->status != CTEST_SUCCESS) {
+		printf(CTEST_COLOR_RED "%s\n" CTEST_COLOR_RESET, testResult->logs);
 	}
 }
 
@@ -426,6 +426,7 @@ double computeElapsedTimeInSeconds(struct timeval start, struct timeval finish)
 		((finish.tv_usec - start.tv_usec) / (double) 1000000);
 	return elapsedTime;
 }
+
 double computeElapsedTimeInMiliseconds(struct timeval start, struct timeval finish) {
 	double elapsedTime = ((finish.tv_sec - start.tv_sec) * (double) 1000) +
 		((finish.tv_usec - start.tv_usec) / (double) 1000);
@@ -435,7 +436,7 @@ double computeElapsedTimeInMiliseconds(struct timeval start, struct timeval fini
 /**
  * Executes all the tests registered in a TestStatus element
  */
-void executeTests(TestStatus *testStatus, const char *suiteName, const char *testName)
+void executeTests(CTest_TestStatus *testStatus, const char *suiteName, const char *testName)
 {
 	struct timeval tInit, tFinish, singleTestStart, singleTestFinish;
 	double elapsedTime = 0, singleTestExecutionElapsedTime = 0;
@@ -464,7 +465,7 @@ void executeTests(TestStatus *testStatus, const char *suiteName, const char *tes
 			singleTestExecutionElapsedTime = computeElapsedTimeInMiliseconds(singleTestStart, singleTestFinish);
 			testStatus->testSuites[i]->testCases[j]->executed = true;
 			testStatus->testSuites[i]->testCases[j]->testResult->status ==
-				SUCCESS ?
+				CTEST_SUCCESS ?
 				testStatus->testSuites[i]->successfulTests++ :
 				testStatus->testSuites[i]->failedTests++;
 			printTestResult(testStatus->testSuites[i]->testCases[j]->name, terminalWidth,
@@ -483,16 +484,18 @@ void executeTests(TestStatus *testStatus, const char *suiteName, const char *tes
 		putchar('-');
 	}
 	if (elapsedTime < 1) {
-		printf("\n\nRESULTS: " GREEN "%ld" RESET " passed, " RED "%ld" RESET " failed in %.4f ms\n",
+		printf("\n\nRESULTS: " CTEST_COLOR_GREEN "%ld" CTEST_COLOR_RESET " passed, " 
+				CTEST_COLOR_RED "%ld" CTEST_COLOR_RESET " failed in %.4f ms\n",
 				testStatus->successfulTests, testStatus->failedTests, elapsedTime * (double) 1000);
 	} else {
-		printf("\n\nRESULTS: " GREEN "%ld" RESET " passed, " RED "%ld" RESET " failed in %.4f s\n",
+		printf("\n\nRESULTS: " CTEST_COLOR_GREEN "%ld" CTEST_COLOR_RESET " passed, " 
+				CTEST_COLOR_RED "%ld" CTEST_COLOR_RESET " failed in %.4f s\n",
 				testStatus->successfulTests, testStatus->failedTests, elapsedTime);
 	}
 	if (testStatus->failedTests == 0) {
-		printf("STATUS:  " GREEN "SUCCESS" RESET "\n");
+		printf("STATUS:  " CTEST_COLOR_GREEN "SUCCESS" CTEST_COLOR_RESET "\n");
 	} else {
-		printf("STATUS:  " RED "FAILURE" RESET "\n");
+		printf("STATUS:  " CTEST_COLOR_RED "FAILURE" CTEST_COLOR_RESET "\n");
 	}
 	fflush(stdout);
 }
@@ -571,16 +574,16 @@ void registerSignalHandlers()
 	}
 }
 
-typedef struct InputParameters
+typedef struct CTest_InputParameters
 {
 	bool invalidOption;
 	bool version;
 	bool help;
 	char *testSuite;
 	char *testCase;
-} InputParameters;
+} CTest_InputParameters;
 
-void processInputParameters(InputParameters *inputParameters, int argc, char **argv)
+void processInputParameters(CTest_InputParameters *inputParameters, int argc, char **argv)
 {
 	const char *shortOptions = "c:hs:v";
 	static struct option longOptions[] =
@@ -647,7 +650,7 @@ void printUsage(void)
  */
 int __attribute__((weak)) main(int argc, char **argv)
 {
-	InputParameters inputParameters;
+	CTest_InputParameters inputParameters;
 	processInputParameters(&inputParameters, argc, argv);
 	if (inputParameters.invalidOption) {
 		printUsage();
