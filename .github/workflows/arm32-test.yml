@@ -38,3 +38,34 @@ jobs:
             cd ..
             rm -rf "${{ env.EXEC_DIR }}"
           fi
+
+  test-shared-lib-ubuntu:
+    runs-on: [self-hosted, ARM, soyuz]
+
+    steps:
+      - name: Create temporary workspace directory
+        run: |
+          EXEC_DIR="tmp_${{ github.run_id }}_${{ github.run_attempt }}_ubuntu"
+          echo "EXEC_DIR=${EXEC_DIR}" >> $GITHUB_ENV
+          mkdir -p "${EXEC_DIR}"
+
+      - name: Checkout pull request code
+        run: |
+          git clone https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git ${{ env.EXEC_DIR }}
+          cd ${{ env.EXEC_DIR }}
+          git checkout ${{ github.event.pull_request.head.sha }}
+
+      - name: Run Docker test shared lib (ubuntu)
+        run: |
+          cd "${{ env.EXEC_DIR }}"
+          docker-compose -f docker/docker-compose.yml up --build --exit-code-from ubuntu-shared-test ubuntu-shared-test
+
+      - name: Clean up temporary directory
+        if: always()
+        run: |
+          if [ -d "${{ env.EXEC_DIR }}" ]; then
+            cd "${{ env.EXEC_DIR }}"
+            docker-compose -f docker/docker-compose.yml down --volumes --remove-orphans || true
+            cd ..
+            rm -rf "${{ env.EXEC_DIR }}"
+          fi
