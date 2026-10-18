@@ -3,6 +3,8 @@
 [![amd64-install](https://github.com/meluchoMZ/ctest/actions/workflows/amd64-install.yml/badge.svg)](https://github.com/meluchoMZ/ctest/actions/workflows/amd64-install.yml)
 
 [![arm32-build](https://github.com/meluchoMZ/ctest/actions/workflows/arm32-build.yml/badge.svg)](https://github.com/meluchoMZ/ctest/actions/workflows/arm32-build.yml)
+[![arm32-test](https://github.com/meluchoMZ/ctest/actions/workflows/arm32-test.yml/badge.svg)](https://github.com/meluchoMZ/ctest/actions/workflows/arm32-test.yml)
+[![arm32-install](https://github.com/meluchoMZ/ctest/actions/workflows/arm32-install.yml/badge.svg)](https://github.com/meluchoMZ/ctest/actions/workflows/arm32-install.yml)
 
 # CTest
 
