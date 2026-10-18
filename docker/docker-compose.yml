@@ -32,6 +32,23 @@ services:
       - ../.:/home/fedora/ctest
     entrypoint: ["/bin/bash", "/home/fedora/ctest/docker/scripts/install.sh"]
 
+  ctest-installed-fedora:
+    build:
+      context: ../
+      dockerfile: docker/dockerfiles/fedora-shared.Dockerfile
+    image: ctest-installed:fedora
+    depends_on:
+      - ctest-base-fedora
+
+  fedora-shared-test:
+    image: ctest-installed:fedora
+    depends_on:
+      - ctest-installed-fedora
+    volumes:
+      - ../.:/home/fedora/ctest
+    entrypoint: ["/bin/bash", "/home/fedora/ctest/docker/scripts/test_shared.sh"]
+
+
 # UBUNTU
   ctest-base-ubuntu:
     build:
@@ -63,4 +80,20 @@ services:
     volumes:
       - ../.:/home/ubuntu/ctest
     entrypoint: ["/bin/bash", "/home/ubuntu/ctest/docker/scripts/install.sh"]
+
+  ctest-installed-ubuntu:
+    build:
+      context: ../
+      dockerfile: docker/dockerfiles/ubuntu-shared.Dockerfile
+    image: ctest-installed:ubuntu
+    depends_on:
+      - ctest-base-ubuntu
+
+  ubuntu-shared-test:
+    image: ctest-installed:ubuntu
+    depends_on:
+      - ctest-installed-ubuntu
+    volumes:
+      - ../.:/home/ubuntu/ctest
+    entrypoint: ["/bin/bash", "/home/ubuntu/ctest/docker/scripts/test_shared.sh"]
 

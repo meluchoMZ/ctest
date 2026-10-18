@@ -3,10 +3,12 @@
 TARGET = libctest.so
 TEST_TARGET = ctest_test
 TEST_FAIL_TARGET = ctest_fail_test
+TEST_SHARED_TARGET = cests_shared_test
 
 SRC = src/ctest_core.c src/ctest_api.c
 TEST_SRC = test/assertions/assertions_tests.c test/assertions/assertions_fail_tests.c test/core/test_suite.c test/core/test_case.c test/core/test_result.c test/core/signals.c
 TEST_FAIL_SRC = test/core/signals.c
+TEST_SHARED_SRC = test/shared/shared_test.c
 INCLUDES = include/ctest_api.h src/ctest_core.h
 
 OBJECTS = ctest_core.o ctest_api.o
@@ -37,6 +39,12 @@ test: $(TEST_SRC)
 test_fail: $(TEST_FAIL_SRC)
 	@echo "Compiling $(TEST_FAIL_TARGET)..."
 	$(CC) $(TEST_CFLAGS) -o $(TEST_FAIL_TARGET) $(SRC) $(TEST_FAIL_SRC) && ./$(TEST_FAIL_TARGET)
+
+test_shared: $(TEST_SHARED_SRC)
+	@echo "Compiling $(TEST_SHARED_SRC)..."
+	$(CC) -o $(TEST_SHARED_TARGET) $(TEST_SHARED_SRC) -lctest -rdynamic -g
+	@echo "Executing shared linked tests"
+	./$(TEST_SHARED_TARGET)
 
 install: $(TARGET)
 	@echo "Installing $(TARGET) to $(LIB_DIR)..."
