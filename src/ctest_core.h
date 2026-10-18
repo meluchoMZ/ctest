@@ -21,43 +21,43 @@
 #define CTEST_VERSION "0.1.0"
 #define CTEST_COPYRIGHT "Copyright (c) 2026 Miguel Blanco Godón"
 
-#define RED "\x1b[31m"
-#define GREEN "\x1b[32m"
-#define RESET "\x1b[0m"
+#define CTEST_COLOR_RED "\x1b[31m"
+#define CTEST_COLOR_GREEN "\x1b[32m"
+#define CTEST_COLOR_RESET "\x1b[0m"
 
-#define SUCCESS_MESSAGE "[SUCCESS]"
-#define FAILURE_MESSAGE "[FAILURE]"
-#define TEST_RESULT_MESSAGE_SIZE 9
+#define CTEST_SUCCESS_MESSAGE "[SUCCESS]"
+#define CTEST_FAILURE_MESSAGE "[FAILURE]"
+#define CTEST_TEST_RESULT_MESSAGE_SIZE 9
 /**
  * Function pointer to the executable test function for each test
  */
-typedef void (*TestFunction)(void);
+typedef void (*CTest_TestFunction)(void);
 
 /**
  * Test execution result status
  */
 typedef enum
 {
-	SUCCESS,
-	FAILURE,
-	CRASH_SEGV,
-	CRASH_OTHER
-} TestExecutionStatus;
+	CTEST_SUCCESS,
+	CTEST_FAILURE,
+	CTEST_CRASH_SEGV,
+	CTEST_CRASH_OTHER
+} CTest_TestExecutionStatus;
 
 /**
  * Test execution info, contains test execution status and logs (stderr, stdout)
  * written during the test execution
  */
-typedef struct TestResult
+typedef struct CTest_TestResult
 {
-	TestExecutionStatus status;
+	CTest_TestExecutionStatus status;
 	char *logs;
-} TestResult;
+} CTest_TestResult;
 
 /**
  * Stores information and status of each test
  */
-typedef struct TestCase
+typedef struct CTest_TestCase
 {
 	const char *name;
 	const char *suiteName;
@@ -66,88 +66,88 @@ typedef struct TestCase
 	bool errorIsRegexp;
 	bool executed;
 	// function pointer to the test function the test executes
-	TestFunction execute;
-	TestResult *testResult;
-} TestCase;
+	CTest_TestFunction execute;
+	CTest_TestResult *testResult;
+} CTest_TestCase;
 
 /**
  * Stores information and status of a test suite
  * It also stores pointers to each individual test case.
  */
-typedef struct TestSuite
+typedef struct CTest_TestSuite
 {
 	const char *name;
-	TestCase **testCases;
+	CTest_TestCase **testCases;
 	long testCaseSize;
 	long testCount;
 	long successfulTests;
 	long failedTests;
-} TestSuite;
+} CTest_TestSuite;
 
 /**
  * Stores information about the status of the tests
  * Contains pointers to all suites
  */
-typedef struct TestStatus
+typedef struct CTest_TestStatus
 {
-	TestSuite **testSuites;
+	CTest_TestSuite **testSuites;
 	long testSuitesSize;
 	long suiteCount;
 	long successfulTests;
 	long failedTests;
-} TestStatus;
+} CTest_TestStatus;
 
 // global test state
-extern TestStatus *testStatus;
+extern CTest_TestStatus *testStatus;
 
 // Non documented functions
 
 /**
- * Creates a TestResult element and initializes its content
+ * Creates a CTest_TestResult element and initializes its content
  */
-TestResult *createTestResult(TestExecutionStatus status, const char *logs, size_t logSize);
+CTest_TestResult *createTestResult(CTest_TestExecutionStatus status, const char *logs, size_t logSize);
 
 /**
- * Frees all the allocated memory in a TestResult element
+ * Frees all the allocated memory in a CTest_TestResult element
  */
-void freeTestResult(TestResult **testResult);
+void freeTestResult(CTest_TestResult **testResult);
 /**
- * Creates a TestCase element and initilizes its content
+ * Creates a CTest_TestCase element and initilizes its content
  */
-TestCase * createTestCase(const char *testName, const char *testSuite, 
-		const char *description, TestFunction testFunction);
+CTest_TestCase * createTestCase(const char *testName, const char *testSuite, 
+		const char *description, CTest_TestFunction testFunction);
 /**
- * Frees all the allocated memory in a TestCase element
+ * Frees all the allocated memory in a CTest_TestCase element
  */
-void freeTestCase(TestCase *testCase);
+void freeTestCase(CTest_TestCase *testCase);
 
 /**
- * Creates a TestSuite elements and initializes its content
+ * Creates a CTest_TestSuite elements and initializes its content
  */
-TestSuite * createTestSuite(const char *name);
+CTest_TestSuite * createTestSuite(const char *name);
 /**
- * Free all the allocated memory in a TestSuite element.
- * Frees all the TestCase elements inside the TestSuite.
+ * Free all the allocated memory in a CTest_TestSuite element.
+ * Frees all the CTest_TestCase elements inside the CTest_TestSuite.
  */ 
-void freeTestSuite(TestSuite **testSuitePtr);
+void freeTestSuite(CTest_TestSuite **testSuitePtr);
 
 /**
- * Adds a TestCase to a TestSuite 
+ * Adds a CTest_TestCase to a CTest_TestSuite 
  */
-bool addTestCase(TestSuite *testSuite, TestCase *testCase);
+bool addTestCase(CTest_TestSuite *testSuite, CTest_TestCase *testCase);
 /**
- * Adds a TestSuite to the TestStatus object
+ * Adds a CTest_TestSuite to the CTest_TestStatus object
  */
-bool addTestSuite(TestStatus *testStatus, TestSuite *testSuite);
+bool addTestSuite(CTest_TestStatus *testStatus, CTest_TestSuite *testSuite);
 
-static void __attribute__((unused)) registerTestInSuite(TestSuite *testSuite, const char *testName,
-		const char *description, const char *expectedError, bool errorIsRegexp, TestFunction testFunction)
+static void __attribute__((unused)) registerTestInSuite(CTest_TestSuite *testSuite, const char *testName,
+		const char *description, const char *expectedError, bool errorIsRegexp, CTest_TestFunction testFunction)
 {
 	if (testSuite == NULL) {
 		fprintf(stderr, "[CTEST] | Error | cannot register test: testSuite is NULL\n");
 		return;
 	}
-	TestCase *testCase = createTestCase(testName, testSuite->name, description, testFunction);
+	CTest_TestCase *testCase = createTestCase(testName, testSuite->name, description, testFunction);
 	testCase->expectedError = expectedError;
 	testCase->errorIsRegexp = errorIsRegexp;
 	if (!addTestCase(testSuite, testCase)) {
@@ -156,7 +156,7 @@ static void __attribute__((unused)) registerTestInSuite(TestSuite *testSuite, co
 	}
 }
 
-static inline TestSuite * __attribute__((unused)) findSuite(TestStatus *testStatus, const char *suiteName)
+static inline CTest_TestSuite * __attribute__((unused)) findSuite(CTest_TestStatus *testStatus, const char *suiteName)
 {
 	if (testStatus == NULL) {
 		fprintf(stderr, "[CTEST] | Error | cannot find suite '%s': testStatus is NULL\n", suiteName);

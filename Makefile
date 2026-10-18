@@ -3,7 +3,7 @@
 TARGET = libctest.so
 TEST_TARGET = ctest_test
 TEST_FAIL_TARGET = ctest_fail_test
-TEST_SHARED_TARGET = cests_shared_test
+TEST_SHARED_TARGET = ctest_shared_test
 
 SRC = src/ctest_core.c src/ctest_api.c
 TEST_SRC = test/assertions/assertions_tests.c test/assertions/assertions_fail_tests.c test/core/test_suite.c test/core/test_case.c test/core/test_result.c test/core/signals.c
