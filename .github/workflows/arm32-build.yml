@@ -1,6 +1,9 @@
 name: arm32-build
 
 on:
+  push:
+    branches:
+      - master
   pull_request:
     types: [opened, synchronize, reopened]
 
