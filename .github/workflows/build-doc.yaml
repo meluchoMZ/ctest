@@ -1,0 +1,53 @@
+name: Build and deploy documentation
+
+on:
+  push:
+    branches: ["main"]
+
+# Needed to publish in pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow only sequential deployments
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy:
+    runs-on: [self-hosted, X64, vostok]
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    container:
+      image: ubuntu:stonking
+      
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Install Dependencies
+        run: |
+          apt-get update && apt-get install -y \
+            doxygen \
+            graphviz \
+            make
+
+      - name: Build Documentation
+        run: make docu
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: 'docs/html'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
