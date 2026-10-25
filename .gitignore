@@ -2,3 +2,4 @@ libctest.so
 ctest_test
 ctest_fail_test
 ctest_shared_test
+docs/html

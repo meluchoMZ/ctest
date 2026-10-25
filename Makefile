@@ -59,14 +59,20 @@ install: $(TARGET)
 uninstall:
 	@echo "Removing installed files..."
 	rm -f $(LIB_DIR)/$(TARGET)
-	rm -f $(INCLUDE_DIR)/ctest_api.h
+	rm -f $(INCLUDE_DIR)/ctest_api.h $(INCLUDE_DIR)/ctest_core.h
 	@ldconfig || true
 	@echo "Uninstalled successfully."
+
+docu:
+	@echo "Building Doxygen documentation..."
+	doxygen ./docs/doxygen-conf
+	@echo "Documentation built. Check './docs/index.html'"
 
 all: $(TARGET) install
 
 clean:
 	@echo "Cleaning up..."
-	@rm -f $(TARGET) $(TEST_TARGET)
+	@rm -f $(TARGET) $(TEST_TARGET) $(TEST_SHARED_TARGET)
+	@rm -rf ./docs/html
 	@echo "Cleanup complete."
 
