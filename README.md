@@ -15,57 +15,12 @@ A lightweight, zero-boilerplate C unit testing library.
 * **Auto-Registration:** Write tests without manually adding them to a `main()` function or maintaining test suites.
 * **Minimal Boilerplate:** Define tests using intuitive macros and let CTest handle execution and setup.
 * **Test functions:** Support for general test assertions and equality functions.
+* **Test failures with regexp support:** Expect tests to fail, check error messages with full regexp support.
 * **Test failure file/line signaling:** The library points to the source file and line that failed in the test execution, with full stack trace.
-
-## Installation
-
-Clone the repository and install CTest globally using `make`:
-
-```bash
-git clone https://github.com/meluchoMZ/ctest.git
-cd ctest
-make
-sudo make install
-```
-
-## Quick start guide
-
-Include `<ctest_api.h>` in your test source files, write your test cases, and compile. No explicit `main()` wrapper or test setup code is required.
-
-```C
-#include <ctest_api.h>
-
-TEST(MathSuite, AdditionTest, "Verifies basic addition operations") {
-    int result = 2 + 2;
-    CT_ASSERT_TRUE(result == 4);
-}
-
-TEST(MathSuite, SubtractionTest, "Verifies basic subtraction operations") {
-    int result = 5 - 3;
-    CT_ASSERT_TRUE(result == 0);
-}
-```
-
-Then, compile your test with 
-
-```bash
-gcc -o test_example test_example.c -lctest -rdynamic -g
-./test_example
-```
-
-`-lctest` to link CTest, `-rdynamic` and `-g` for stack trace printing.
-
-## Usage
-Executing the compiled executable will execute all compiled tests.
-
-You can filter for test suite with `-s`(`--suite`) <suiteName> option.
-
-You can also filter by a test case with `-c`(`--case`) <testCaseName> option.
-
 
 ## Documentation
 
-Coming soon
+You can see the library documentation ![here](https://meluchomz.github.io/ctest/).
 
 ## Screenshots
 
