@@ -69,6 +69,10 @@
  * Explore the API provided by CTest:
  * - @ref ctest_test_def
  * - @ref ctest_assert_def
+ *
+ * @section internal_docu Development (non public, internal) documentation
+ * Explore the internal development (non public) documentation for the library:
+ * - @ref ctest_internal
  */
 
 #ifndef __CTEST_API_H
