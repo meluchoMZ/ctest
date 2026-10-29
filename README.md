@@ -20,7 +20,7 @@ A lightweight, zero-boilerplate C unit testing library.
 
 ## Documentation
 
-You can see the library documentation ![here](https://meluchomz.github.io/ctest/).
+You can see the [CTest Library documentation](https://meluchomz.github.io/ctest/).
 
 ## Screenshots
 
